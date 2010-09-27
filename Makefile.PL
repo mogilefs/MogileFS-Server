@@ -43,7 +43,7 @@ WriteMakefile(
           resources => {
             homepage    =>      'http://danga.com/mogilefs/',
             bugtracker  =>      'http://rt.cpan.org/Public/Dist/Display.html?Name=mogilefs-server',
-            repository  =>      'http://code.sixapart.com/svn/mogilefs/',
+            repository  =>      'git://github.com/mogilefs/MogileFS-Server.git',
             MailingList =>      'http://groups.google.com/group/mogile',
         },
 
