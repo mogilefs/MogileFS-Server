@@ -204,17 +204,61 @@ sub percent_full {
     return $dev->{mb_used} / $dev->{mb_total};
 }
 
-our $util_no_broadcast = 0;
+our $no_broadcast = 0;
+
+sub set_observed_await {
+    my ($dev, $await) = @_;
+    $dev->{await} = $await;
+    my $devid = $dev->id;
+
+    return if $no_broadcast;
+
+    my $worker = MogileFS::ProcManager->is_child or return;
+    $worker->send_to_parent(":set_dev_await $devid $await");
+}
+
+sub set_observed_svctm {
+    my ($dev, $svctm) = @_;
+    $dev->{svctm} = $svctm;
+    my $devid = $dev->id;
+
+    return if $no_broadcast;
+
+    my $worker = MogileFS::ProcManager->is_child or return;
+    $worker->send_to_parent(":set_dev_svctm $devid $svctm");
+}
 
 sub set_observed_utilization {
     my ($dev, $util) = @_;
     $dev->{utilization} = $util;
     my $devid = $dev->id;
 
-    return if $util_no_broadcast;
+    return if $no_broadcast;
 
     my $worker = MogileFS::ProcManager->is_child or return;
     $worker->send_to_parent(":set_dev_utilization $devid $util");
+}
+
+sub observed_await {
+    my ($dev) = @_;
+
+    if (TESTING) {
+        my $weight_varname = 'T_FAKE_IO_DEV' . $dev->id;
+        return $ENV{$weight_varname} if defined $ENV{$weight_varname};
+    }
+
+    return $dev->{await};
+}
+
+sub observed_svctm {
+    my ($dev) = @_;
+
+    if (TESTING) {
+        my $weight_varname = 'T_FAKE_IO_DEV' . $dev->id;
+        return $ENV{$weight_varname} if defined $ENV{$weight_varname};
+    }
+
+    return $dev->{svctm};
 }
 
 sub observed_utilization {
@@ -442,7 +486,7 @@ sub overview_hashref {
 
     my $ret = {};
     foreach my $k (qw(devid hostid status weight observed_state
-                      mb_total mb_used mb_asof utilization)) {
+                      mb_total mb_used mb_asof await svctm utilization)) {
         $ret->{$k} = $dev->{$k};
     }
     $ret->{mb_free} = $dev->mb_free;

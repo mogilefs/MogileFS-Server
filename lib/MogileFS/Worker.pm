@@ -279,14 +279,22 @@ sub process_generic_command {
         return 1;
     }
 
-    # :set_dev_utilization dev# 45.2 dev# 45.2 dev# 45.2 dev# 45.2 dev 45.2\n
+    # :set_dev_(await|svctm|utilization) dev# 45.2 dev# 45.2 dev# 45.2 dev# 45.2 dev 45.2\n
     # (dev#, utilz%)+
-    if (my ($devid, $util) = $$lineref =~ /^:set_dev_utilization (.+)/) {
-        my %pairs = split(/\s+/, $1);
-        local $MogileFS::Device::util_no_broadcast = 1;
-        while (my ($devid, $util) = each %pairs) {
+    if (my ($devid, $util) = $$lineref =~ /^:set_dev_(await|svctm|utilization) (.+)/) {
+        my $type = $1;
+        my %pairs = split(/\s+/, $2);
+        local $MogileFS::Device::no_broadcast = 1;
+        while (my ($devid, $val) = each %pairs) {
             my $dev = eval { MogileFS::Device->of_devid($devid) } or next;
-            $dev->set_observed_utilization($util);
+
+            if ($type eq 'await') {
+                $dev->set_observed_await($val);
+            } elsif ($type eq 'svctm') {
+                $dev->set_observed_svctm($val);
+            } elsif ($type eq 'utilization') {
+                $dev->set_observed_utilization($val);
+            }
         }
         return 1;
     }

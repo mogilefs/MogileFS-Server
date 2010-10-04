@@ -43,8 +43,10 @@ my @prefork_cleanup;  # subrefs to run to clean stuff up before we make a new ch
 
 *error = \&Mgd::error;
 
-my %dev_util;         # devid -> utilization
-my $last_util_spray = 0;  # time we lost spread %dev_util to children
+my %dev_await;      # devid -> await
+my %dev_svctm;      # devid -> svctm
+my %dev_util;       # devid -> utilization
+my $last_dev_spray    = 0;  # time we last spread await|svctm|util to children
 
 my $nowish;  # updated approximately once per second
 
@@ -692,13 +694,22 @@ sub HandleChildRequest {
         # and this will rebroadcast it to all other children
         # (including the one that just set it to us, but eh)
         MogileFS::Config->set_config($1, $2);
-    } elsif (my ($devid, $util) = $cmd =~ /^:set_dev_utilization (\d+) (.+)/) {
-        $dev_util{$devid} = $util;
+    } elsif (my ($type, $devid, $val) = $cmd =~ /^:set_dev_(await|svctm|utilization) (\d+) (.+)/) {
+
+        if ($type eq 'await') {
+            $dev_await{$devid} = $val;
+        } elsif ($type eq 'svctm') {
+            $dev_svctm{$devid} = $val;
+        } elsif ($type eq 'utilization') {
+            $dev_util{$devid} = $val;
+        }
 
         # time to rebroadcast dev utilization messages to all children?
-        if ($nowish > $last_util_spray + 3) {
-            $last_util_spray = $nowish;
-            MogileFS::ProcManager->send_to_all_children(":set_dev_utilization " . join(" ", %dev_util));
+        if ($nowish > $last_dev_spray + 3) {
+            $last_dev_spray = $nowish;
+            MogileFS::ProcManager->send_to_all_children(":set_dev_await " . join(" ", %dev_await)) if keys(%dev_await);
+            MogileFS::ProcManager->send_to_all_children(":set_dev_svctm " . join(" ", %dev_svctm)) if keys(%dev_svctm);
+            MogileFS::ProcManager->send_to_all_children(":set_dev_utilization " . join(" ", %dev_util)) if keys(%dev_util);
         }
     } else {
         # unknown command
