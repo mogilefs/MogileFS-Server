@@ -296,7 +296,7 @@ sub fix_fid {
             # don't log in desperate mode, as we'd have "file missing!" log entries
             # for every device in the normal case, which is expected.
             unless ($is_desperate_mode) {
-                if (! $disk_size) {
+                if ($disk_size == -1) {
                     $fid->fsck_log(EV_FILE_MISSING, $dev);
                 } else {
                     $fid->fsck_log(EV_BAD_LENGTH, $dev);
