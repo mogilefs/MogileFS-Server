@@ -304,8 +304,9 @@ sub rebalance_devfid {
 # $rv is one of:
 #    0 = failure  (failure written to ${$opts{errref}})
 #    1 = success
-#    "lost_race" = skipping, we did no work and policy was already met.
-#    "nofid" => fid no longer exists. skip replication.
+#    "lost_race"    => skipping, we did no work and policy was already met.
+#    "nofid"        => fid no longer exists. skip replication.
+#    "nodevfid"     => fid no longer exists on specified device, skip replication.
 sub replicate {
     my ($fid, %opts) = @_;
     $fid = MogileFS::FID->new($fid) unless ref $fid;
@@ -369,6 +370,13 @@ sub replicate {
     # if the fid doesn't even exist, consider our job done!  no point
     # replicating file contents of a file no longer in the namespace.
     return $retunlock->("nofid") unless $fid->exists;
+
+    # If a specific source device has been requested for replication and the fid
+    # no longer exists there, bail as someone must have got to it first
+    if ($fixed_source) {
+        my $devfid  = MogileFS::DevFID->new($sdevid, $fidid);
+        return $retunlock->(2, "nodevfid", "Requested device $sdevid no longer contains fid $fidid") unless ($devfid && $devfid->exists);
+    }
 
     my $cls = $fid->class;
     my $polobj = $cls->repl_policy_obj;
