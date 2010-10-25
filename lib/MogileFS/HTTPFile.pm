@@ -93,7 +93,7 @@ sub delete {
 }
 
 # returns size of file, (doing a HEAD request and looking at content-length, or side-channel to mogstored)
-# returns 0 on file missing (404 or -1 from sidechannel),
+# returns -1 on file missing (404 or -1 from sidechannel),
 # returns undef on connectivity error
 use constant FILE_MISSING => -1;
 sub size {
@@ -143,7 +143,7 @@ sub size {
     my $stream_response_timeout = 1.0;
     my $read_timed_out = 0;
 
-    # returns defined on a real answer (0 = file missing, >0 = file length),
+    # returns defined on a real answer (-1 = file missing, >=0 = file length),
     # returns undef on connectivity problems.
     my $parse_response = sub {
         # give the socket 1 second to become readable until we get
@@ -171,7 +171,7 @@ sub size {
         return undef unless $line =~ /^(\S+)\s+(-?\d+)/; # expected format: "uri size"
         return undeferr("get_file_size() requested size of $path, got back size of $1 ($2 bytes)")
             if $1 ne $uri;
-        # backchannel sends back -1 on non-existent file, which we map to the defined value '0'
+        # backchannel sends back -1 on non-existent file, which we map to the defined value '-1'
         return FILE_MISSING if $2 < 0;
         # otherwise, return byte size of file
         return $2+0;
