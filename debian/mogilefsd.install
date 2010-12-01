@@ -3,5 +3,3 @@ usr/bin/mogilefsd			/usr/bin
 usr/share/man/man1/mogilefsd.1p 	/usr/share/man/man1
 usr/share/man/man3/MogileFS*		/usr/share/man/man3
 usr/share/perl5/MogileFS		/usr/share/perl5
-usr/share/perl5/dev-mogstored.pl	/usr/share/mogilefsd
-usr/share/perl5/makedocs.pl		/usr/share/mogilefsd
