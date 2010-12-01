@@ -61,7 +61,7 @@ do_start()
 
 	fi
 
-	start-stop-daemon --start --quiet --exec $DAEMON --pidfile $PIDFILE -b -m --name $NAME --chuid $MOGILEFSD_RUNASUSER
+	start-stop-daemon --start --quiet --exec $DAEMON --pidfile $PIDFILE -b -m --name $NAME --chuid $MOGILEFSD_RUNASUSER -- $MOGILEFSD_EXTRA_OPTS
 }
 
 #
