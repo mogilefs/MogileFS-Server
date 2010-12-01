@@ -2,12 +2,12 @@ Source: mogilefs-server
 Section: perl
 Priority: optional
 Maintainer: Jonathan Steinert <deb@hachi.kuiki.net>
-Build-Depends-Indep: libstring-crc32-perl
+Build-Depends-Indep: libstring-crc32-perl, debhelper
 Standards-Version: 3.6.1.0
 
 Package: mogstored
 Architecture: all
-Depends: ${perl:Depends}, debhelper (>= 4.1.40), libperlbal-perl, libio-aio-perl, debconf (>= 1.2.0)
+Depends: ${perl:Depends}, debhelper (>= 4.1.40), libperlbal-perl (>= 1.73), libio-aio-perl, debconf (>= 1.2.0)
 Suggests: mogilefs-utils
 Description: storage node daemon for MogileFS
  Mogstored is a storage node daemon for MogileFS, the open-source
