@@ -11,12 +11,11 @@
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-DAEMON=/usr/bin/mogilefsd
+DAEMON=/usr/local/bin/mogilefsd
 NAME=mogilefsd
 DESC=mogilefsd
 DEFAULTS=/etc/default/$NAME
-PIDDIR=/var/run/$NAME
-PIDFILE=$PIDDIR/$NAME.pid
+PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
 # Exit if the package is not installed
@@ -48,13 +47,6 @@ set -e
 #
 do_start()
 {
-
-	if ! test -d ${PIDDIR}
-	then
-		mkdir ${PIDDIR}
-		chown ${MOGILEFSD_RUNASUSER} ${PIDDIR}
-	fi
-
 	if [ -e $PIDFILE ]
 		then
 
@@ -69,7 +61,7 @@ do_start()
 
 	fi
 
-	start-stop-daemon --start --quiet --exec $DAEMON -b --name $NAME --chuid $MOGILEFSD_RUNASUSER -- $MOGILEFSD_EXTRA_OPTS
+	start-stop-daemon --start --quiet --exec $DAEMON --pidfile $PIDFILE -b -m --name $NAME --chuid $MOGILEFSD_RUNASUSER
 }
 
 #
