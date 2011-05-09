@@ -1,0 +1,9 @@
+# Defaults for mogstored - sourced by /etc/init.d/mogstored
+
+# Start mogstored on boot?
+START=yes
+
+# Startup options
+DAEMON_OPTS=""
+
+MOGSTORED_RUNASUSER=mogile
