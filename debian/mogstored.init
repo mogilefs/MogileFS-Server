@@ -73,6 +73,16 @@ do_stop()
 	rm -f $PIDFILE
 }
 
+do_status()
+{
+	if [ -f ${PIDFILE} ]; then
+		echo $NAME: running.
+	else
+		echo $NAME: not running.
+		exit 5
+	fi
+}
+
 case "$1" in
   start)
 	echo -n "Starting $DESC: "
@@ -84,7 +94,9 @@ case "$1" in
 	do_stop
 	echo "$NAME."
 	;;
-
+  status)
+	do_status
+	;;
   restart|force-reload)
 	#
 	#	If the "reload" option is implemented, move the "force-reload"
@@ -98,8 +110,8 @@ case "$1" in
 	echo "$NAME."
 	;;
   *)
-	#echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload}" >&2
-	echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload}" >&2
+	#echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload|status}" >&2
+	echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload|status}" >&2
 	exit 3
 	;;
 esac
