@@ -523,6 +523,12 @@ sub cmd_file_debug {
         $args->{dmid} = $self->check_domain($args)
             or return $self->err_line('domain_not_found');
         return $self->err_line("no_key") unless $args->{key};
+        
+        # now invoke the plugin, abort if it tells us to
+        my $rv = MogileFS::run_global_hook('cmd_file_debug', $args);
+        return $self->err_line('plugin_aborted')
+            if defined $rv && ! $rv;
+
         $fid = $sto->file_row_from_dmid_key($args->{dmid}, $args->{key});
         return $self->err_line("unknown_key") unless $fid;
         $fidid = $fid->{fid};
@@ -570,8 +576,14 @@ sub cmd_file_info {
     my MogileFS::Worker::Query $self = shift;
     my $args = shift;
 
+    # validate domain for plugins
     $args->{dmid} = $self->check_domain($args)
         or return $self->err_line('domain_not_found');
+
+    # now invoke the plugin, abort if it tells us to
+    my $rv = MogileFS::run_global_hook('cmd_file_info', $args);
+    return $self->err_line('plugin_aborted')
+        if defined $rv && ! $rv;
 
     # validate parameters
     my $dmid = $args->{dmid};
