@@ -321,6 +321,14 @@ sub check_device {
     return if ($self->{last_test_write}{$devid} || 0) + UPDATE_DB_EVERY > $now;
     $self->{last_test_write}{$devid} = $now;
 
+
+    unless ($dev->can_delete_from)
+    {
+      # we should not try to write on readonly devices because it can be mounted as RO that fails storage nginxes etc. actively
+      $self->broadcast_device_readable($devid);
+      debug("dev$devid: used = $used, total = $total, writeable = 0");
+      return;
+    }
     # now we want to check if this device is writeable
 
     # first, create the test-write directory.  this will return
