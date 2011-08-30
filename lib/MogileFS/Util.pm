@@ -89,6 +89,7 @@ sub every {
 sub debug {
     my ($msg, $level) = @_;
     return unless $Mgd::DEBUG >= 1;
+    $msg =~ s/[\r\n]+//g;
     if (my $worker = MogileFS::ProcManager->is_child) {
         $worker->send_to_parent("debug $msg");
     } else {

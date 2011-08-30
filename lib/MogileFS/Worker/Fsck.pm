@@ -257,7 +257,7 @@ sub parallel_check_sizes {
 use constant CANT_FIX => 0;
 sub fix_fid {
     my ($self, $fid) = @_;
-    debug(sprintf("Fixing FID %d\n", $fid->id));
+    debug(sprintf("Fixing FID %d", $fid->id));
 
     # This should happen first, since the fid gets awkwardly reloaded...
     $fid->update_devcount;
