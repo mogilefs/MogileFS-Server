@@ -2,6 +2,7 @@ package MogileFS::Device;
 use strict;
 use warnings;
 use Carp qw/croak/;
+use MogileFS::Server;
 use MogileFS::Util qw(throw);
 use MogileFS::Util qw(okay_args device_state error);
 

@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Carp qw(croak);
 use MogileFS::ReplicationRequest qw(rr_upgrade);
+use MogileFS::Server;
 use overload '""' => \&as_string;
 
 sub new {

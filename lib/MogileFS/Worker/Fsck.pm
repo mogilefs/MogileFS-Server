@@ -10,6 +10,7 @@ use fields (
             );
 use MogileFS::Util qw(every error debug);
 use MogileFS::Config;
+use MogileFS::Server;
 use List::Util ();
 use Time::HiRes ();
 

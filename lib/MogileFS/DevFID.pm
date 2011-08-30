@@ -1,6 +1,7 @@
 package MogileFS::DevFID;
 use strict;
 use warnings;
+use MogileFS::Server;
 use overload '""' => \&as_string;
 use Carp qw(croak);
 

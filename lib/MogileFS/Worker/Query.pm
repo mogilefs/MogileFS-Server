@@ -11,6 +11,7 @@ use MogileFS::Util qw(error error_code first weighted_list
 use MogileFS::HTTPFile;
 use MogileFS::Rebalance;
 use MogileFS::Config;
+use MogileFS::Server;
 
 sub new {
     my ($class, $psock) = @_;
@@ -637,9 +638,9 @@ sub cmd_list_fids {
         my $fid = $r->{fid};
         $ret->{"fid_${ct}_fid"} = $fid;
         $ret->{"fid_${ct}_domain"} = ($domains{$r->{dmid}} ||=
-            Mgd::domain_factory->get_by_id($r->{dmid})->name);
+            Mgd::domain_factory()->get_by_id($r->{dmid})->name);
         $ret->{"fid_${ct}_class"} = ($classes{$r->{dmid}}{$r->{classid}} ||=
-            Mgd::class_factory->get_by_id($r->{dmid}, $r->{classid})->name);
+            Mgd::class_factory()->get_by_id($r->{dmid}, $r->{classid})->name);
         $ret->{"fid_${ct}_key"} = $r->{dkey};
         $ret->{"fid_${ct}_length"} = $r->{length};
         $ret->{"fid_${ct}_devcount"} = $r->{devcount};

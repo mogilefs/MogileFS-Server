@@ -1,5 +1,6 @@
 package MogileFS::ReplicationRequest;
 use strict;
+use MogileFS::Server;
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(rr_upgrade ALL_GOOD TOO_GOOD TEMP_NO_ANSWER);

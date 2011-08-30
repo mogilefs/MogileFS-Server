@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Carp qw(croak);
 use Socket qw(PF_INET IPPROTO_TCP SOCK_STREAM);
+use MogileFS::Server;
 use MogileFS::Util qw(error undeferr wait_for_readability wait_for_writeability);
 
 # (caching the connection used for HEAD requests)
