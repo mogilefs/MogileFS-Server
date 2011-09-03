@@ -3,6 +3,7 @@ package MogileFS::Worker::Reaper;
 
 use strict;
 use base 'MogileFS::Worker';
+use MogileFS::Server;
 use MogileFS::Util qw(every error debug);
 use MogileFS::Config qw(DEVICE_SUMMARY_CACHE_TIMEOUT);
 

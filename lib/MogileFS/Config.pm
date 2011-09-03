@@ -5,6 +5,7 @@ use MogileFS::ProcManager;
 use Getopt::Long;
 use MogileFS::Store;
 use Sys::Hostname ();
+use MogileFS::Server;
 
 our @ISA = qw(Exporter);
 our @EXPORT = qw($DEBUG config set_config FSCK_QUEUE REBAL_QUEUE);

@@ -8,6 +8,7 @@ use fields (
             );
 
 use List::Util ();
+use MogileFS::Server;
 use MogileFS::Util qw(error every debug);
 use MogileFS::Config;
 use MogileFS::ReplicationRequest qw(rr_upgrade);

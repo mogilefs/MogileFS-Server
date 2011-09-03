@@ -1,6 +1,7 @@
 package MogileFS::Domain;
 use strict;
 use warnings;
+use MogileFS::Server;
 use MogileFS::Util qw(throw);
 
 =head1

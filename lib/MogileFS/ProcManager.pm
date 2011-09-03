@@ -4,6 +4,7 @@ use warnings;
 use POSIX qw(:sys_wait_h sigprocmask SIGINT SIG_BLOCK SIG_UNBLOCK);
 use Symbol;
 use Socket;
+use MogileFS::Server;
 use MogileFS::Connection::Client;
 use MogileFS::Connection::Worker;
 use MogileFS::Util qw(apply_state_events);

@@ -14,6 +14,7 @@ use fields (
             );
 use MogileFS::Util qw(every error debug encode_url_args);
 use MogileFS::Config;
+use MogileFS::Server;
 
 use constant DEF_FSCK_QUEUE_MAX => 20_000;
 use constant DEF_FSCK_QUEUE_INJECT => 1000;

@@ -1,3 +1,8 @@
+   * Fix listing FIDs.
+   * Fix fsck fixing a file from logging a message which appears to be
+     two commands (due to spurious \n). Also fix debug function to
+     not be able to log messages like this.
+
 2011-08-12: Release version 2.53
 
    * Fix host status not updating for trackers (important)

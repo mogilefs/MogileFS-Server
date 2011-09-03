@@ -19,6 +19,7 @@ use Danga::Socket 1.56;
 use MogileFS::Config;
 use MogileFS::Util qw(error debug encode_url_args);
 use MogileFS::IOStatWatcher;
+use MogileFS::Server;
 
 use constant UPDATE_DB_EVERY => 15;
 

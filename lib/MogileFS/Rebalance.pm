@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use Carp qw(croak);
 use List::Util ();
+use MogileFS::Server ();
+
 # Note: The filters aren't written for maximum speed, as they're not likely
 # in the slow path. They're supposed to be readable/extensible. Please don't
 # cram them down unless you have to.

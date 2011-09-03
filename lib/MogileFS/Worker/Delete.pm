@@ -4,6 +4,7 @@ package MogileFS::Worker::Delete;
 use strict;
 use base 'MogileFS::Worker';
 use MogileFS::Util qw(error);
+use MogileFS::Server;
 
 # we select 1000 but only do a random 100 of them, to allow
 # for stateless parallelism
