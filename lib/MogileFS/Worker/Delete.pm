@@ -309,7 +309,7 @@ sub process_deletes {
         # (Note: we're tolerant of '0' as a devid, due to old buggy version which
         # would sometimes put that in there)
         my $dev = $devid ? Mgd::device_factory()->get_by_id($devid) : undef;
-        unless ($dev && $dev->exists) {
+        unless ($dev) {
             $done_with_devid->("devid_doesnt_exist");
             next;
         }
