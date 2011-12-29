@@ -1,3 +1,6 @@
+   * Fixed issue where too many devices being active could cause the monitor job
+     to be timed out by the watchdog.
+
 2011-11-14: Release version 2.55
 
    * fixed sources in replication are now a suggestion (dormando <dormando@rydia.net>)
