@@ -5,7 +5,7 @@ use strict;
 use warnings;
 
 use base 'MogileFS::Worker';
-use fields qw(querystarttime reqid);
+use fields qw(querystarttime reqid callid);
 use MogileFS::Util qw(error error_code first weighted_list
                       device_state eurl decode_url_args);
 use MogileFS::HTTPFile;
@@ -20,6 +20,7 @@ sub new {
 
     $self->{querystarttime} = undef;
     $self->{reqid}          = undef;
+    $self->{callid}         = undef;
     return $self;
 }
 
@@ -105,8 +106,9 @@ sub process_line {
 
         no strict 'refs';
         my $cmd_handler = *{"cmd_$cmd"}{CODE};
+        my $args = decode_url_args(\$args);
+        $self->{callid} = $args->{callid};
         if ($cmd_handler) {
-            my $args = decode_url_args(\$args);
             local $MogileFS::REQ_altzone = ($args->{zone} && $args->{zone} eq 'alt');
             eval {
                 $cmd_handler->($self, $args);
@@ -1710,6 +1712,7 @@ sub ok_line {
     my $id = defined $self->{reqid} ? "$self->{reqid} " : '';
 
     my $args = shift || {};
+    $args->{callid} = $self->{callid} if defined $self->{callid};
     my $argline = join('&', map { eurl($_) . "=" . eurl($args->{$_}) } keys %$args);
     $self->send_to_parent("${id}${delay}OK $argline");
     return 1;
@@ -1770,8 +1773,9 @@ sub err_line {
     }
 
     my $id = defined $self->{reqid} ? "$self->{reqid} " : '';
+    my $callid = defined $self->{callid} ? ' ' . eurl($self->{callid}) : '';
 
-    $self->send_to_parent("${id}${delay}ERR $err_code " . eurl($err_text));
+    $self->send_to_parent("${id}${delay}ERR $err_code " . eurl($err_text) . $callid);
     return 0;
 }
 
