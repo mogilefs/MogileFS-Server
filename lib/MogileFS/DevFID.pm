@@ -134,6 +134,9 @@ sub add_to_db {
 
     my $sto = Mgd::get_store();
     if ($sto->add_fidid_to_devid($self->{fidid}, $self->{devid})) {
+        if (my $memc = MogileFS::Config->memcache_client) {
+            $memc->delete("mogdevids:$self->{fidid}");
+        }
         return $self->fid->update_devcount(no_lock => $no_lock);
     } else {
         # was already on that device
