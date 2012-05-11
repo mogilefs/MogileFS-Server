@@ -55,7 +55,7 @@ sub look_at_disk_usage {
     }
 
     foreach my $devnum (@devnum) {
-        my $rval = `df $gnu_df -l -k $path/$devnum`;
+        my $rval = `df $gnu_df -k $path/$devnum`;
         my $uperK = ($rval =~ /512-blocks/i) ? 2 : 1; # units per kB
         foreach my $l (split /\r?\n/, $rval) {
             next unless $l =~ /^(.+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(.+)\s+(.+)$/;
