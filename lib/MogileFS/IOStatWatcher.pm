@@ -63,10 +63,22 @@ sub on_stats {
 
 =head2 on_stats->( host, stats )
 
-Called each time device use statistics are collected. The C<host>
-argument is the value passed in to the C<set_hosts> method. The
-C<stats> object is a hashref of mogile device numbers (without leading
-"dev") to their corresponding utilization percentages.
+Called each time device use statistics are collected. The C<host> argument is
+the value passed in to the C<set_hosts> method. The C<stats> object is a hashref
+of mogile device numbers (without leading "dev") to a dictionary of their
+corresponding utilization. The map consists of:
+
+=over 4
+
+=item await
+
+=item svctm
+
+=item util
+
+The disk utilization as a percentage.
+
+=back
 
 =cut
 
@@ -154,8 +166,12 @@ sub event_read {
         my %stats;
         foreach my $line (split /\n+/, $1) {
             next unless $line;
-            my ($devnum, $util) = split /\s+/, $line;
-            $stats{$devnum} = $util;
+            my ($devnum, $util, $await, $svctm) = split /\s+/, $line;
+            $stats{$devnum} = {
+                await => $await,
+                svctm => $svctm,
+                util => $util
+            };
         }
         $self->{watcher}->got_stats($self->{host}, \%stats);
     }

@@ -125,14 +125,17 @@ sub work {
     $iow->on_stats(sub {
         my ($hostname, $stats) = @_;
 
-        while (my ($devid, $util) = each %$stats) {
+        while (my ($devid, $devstats) = each %$stats) {
             # Lets not propagate devices that we accidentally find.
             # This does hit the DB every time a device does not exist, so
             # perhaps should add negative caching in the future.
-            $self->{devutil}->{cur}->{$devid} = $util;
+            $self->{devutil}->{cur}->{$devid} = $devstats->{util};
             my $dev = Mgd::device_factory()->get_by_id($devid);
             next unless $dev;
-            $dev->set_observed_utilization($util);
+
+            $dev->set_observed_await($devstats->{await});
+            $dev->set_observed_svctm($devstats->{svctm});
+            $dev->set_observed_utilization($devstats->{util});
         }
     });
 

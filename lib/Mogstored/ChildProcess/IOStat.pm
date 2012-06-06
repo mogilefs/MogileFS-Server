@@ -65,22 +65,32 @@ sub run {
         my $iofh = $get_iostat_fh->();
         my $mog_sysid = mog_sysid_map();  # 5 (mogdevid) -> 2340 (os devid)
         my $dev_sysid = {};  # hashref, populated lazily:  { /dev/sdg => system dev_t }
-        my %devt_util;  # dev_t => 52.55
+        my (%devt_util, %devt_svctm, %devt_await);  # dev_t => 52.55
         my $init = 0;
+        my (@columns, %column_map); # map an iostat column name to its array index
         while (<$iofh>) {
             if (m/^Device:/) {
-                %devt_util = ();
+                (%devt_util, %devt_await, %devt_svctm) = ( (), (), () );
                 $init = 1;
+                @columns = split /\s+/, $_;
+                my $i = 0;
+                for my $column (@columns) {
+                    $column_map{$column} = $i++;
+                }
                 next;
             }
             next unless $init;
             if (m/^ (\S+) .*? ([\d.]+) \n/x) {
-                my ($devnode, $util) = ("/dev/$1", $2);
+                my @components = split /\s+/, $_;
+                my $devnode = '/dev/' . $components[$column_map{'Device:'}];
                 unless (exists $dev_sysid->{$devnode}) {
                     $dev_sysid->{$devnode} = (stat($devnode))[6]; # rdev
                 }
                 my $devt = $dev_sysid->{$devnode};
-                $devt_util{$devt} = $util;
+                $devt_util{$devt} = $components[$column_map{'%util'}];
+                $devt_svctm{$devt} = $components[$column_map{'svctm'}];
+                $devt_await{$devt} = $components[$column_map{'await'}];
+
                 next;
             }
             # blank line is the end.
@@ -89,8 +99,11 @@ sub run {
                 my $ret = "";
                 foreach my $mogdevid (sort { $a <=> $b } keys %$mog_sysid) {
                     my $devt = $mog_sysid->{$mogdevid};
-                    my $ut = defined $devt_util{$devt} ? $devt_util{$devt} : "-";
-                    $ret .= "$mogdevid\t$ut\n";
+
+                    my $await = defined $devt_await{$devt} ? $devt_await{$devt} : "-";
+                    my $svctm = defined $devt_svctm{$devt} ? $devt_svctm{$devt} : "-";
+                    my $util = defined $devt_util{$devt} ? $devt_util{$devt} : "-";
+                    $ret .= "$mogdevid\t$util\t$await\t$svctm\t\n";
                 }
                 $ret .= ".\n";
                 print $ret;
