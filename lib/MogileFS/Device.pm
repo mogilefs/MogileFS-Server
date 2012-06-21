@@ -17,7 +17,7 @@ BEGIN {
     eval "sub TESTING () { $testing }";
 }
 
-my @observed_fields = qw/observed_state utilization reject_bad_md5/;
+my @observed_fields = qw/observed_state utilization reject_bad_md5 await svctm/;
 my @fields = (qw/hostid status weight mb_total mb_used mb_asof devid/,
     @observed_fields);
 
@@ -87,6 +87,28 @@ sub observed_utilization {
     }
 
     return $self->{utilization};
+}
+
+sub observed_await {
+    my $self = shift;
+
+    if (TESTING) {
+        my $weight_varname = 'T_FAKE_IO_DEV' . $self->id;
+        return $ENV{$weight_varname} if defined $ENV{$weight_varname};
+    }
+
+    return $self->{await};
+}
+
+sub observed_svctm {
+    my $self = shift;
+
+    if (TESTING) {
+        my $weight_varname = 'T_FAKE_IO_DEV' . $self->id;
+        return $ENV{$weight_varname} if defined $ENV{$weight_varname};
+    }
+
+    return $self->{svctm};
 }
 
 sub observed_writeable {
@@ -289,6 +311,14 @@ sub vivify_directories {
 
 # FIXME: Remove this once vestigial code is removed.
 sub set_observed_utilization {
+    return 1;
+}
+
+sub set_observed_await {
+    return 1;
+}
+
+sub set_observed_svctm {
     return 1;
 }
 
