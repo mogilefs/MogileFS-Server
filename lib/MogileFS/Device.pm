@@ -314,6 +314,14 @@ sub set_observed_utilization {
     return 1;
 }
 
+sub set_observed_await {
+    return 1;
+}
+
+sub set_observed_svctm {
+    return 1;
+}
+
 # Compatibility interface since this old routine is unfortunately called
 # internally within plugins. This data should be passed into any hooks which
 # may need it?
