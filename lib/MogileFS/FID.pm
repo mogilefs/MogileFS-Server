@@ -160,13 +160,13 @@ sub mark_unreachable {
 sub delete {
     my $fid = shift;
     my $sto = Mgd::get_store();
-    my $memc = MogileFS::Config->memcache_client;
-    if ($memc) {
+    my $cache = Mgd::get_cache();
+    if ($cache) {
         $fid->_tryload;
     }
     $sto->delete_fidid($fid->id);
-    if ($memc && $fid->{_loaded}) {
-        $memc->delete("mogfid:$fid->{dmid}:$fid->{dkey}");
+    if ($cache && $fid->{_loaded}) {
+        $cache->delete({ type => 'fid', domain => $fid->{dmid}, key => $fid->{dkey} });
     }
 }
 

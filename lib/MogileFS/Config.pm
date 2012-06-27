@@ -105,6 +105,9 @@ sub load_config {
                              'repl_use_get_port=i' => \$cmdline{repl_use_get_port},
                              'local_network=s' => \$cmdline{local_network},
                              'mogstored_stream_port' => \$cmdline{mogstored_stream_port},
+                             'cache_type' => \$cmdline{cache_type},
+                             'cache_servers' => \$cmdline{cache_servers},
+                             'cache_ttl' => \$cmdline{cache_ttl},
                              );
 
     # warn of old/deprecated options
@@ -165,6 +168,10 @@ sub load_config {
     choose_value( 'default_mindevcount', 2 );
     $node_timeout   = choose_value( 'node_timeout', 2 );
     $conn_timeout   = choose_value( 'conn_timeout', 2 );
+
+    choose_value( 'cache_type', "none" );
+    choose_value( 'cache_servers', "" );
+    choose_value( 'cache_ttl', 3600 );
 
     choose_value( 'rebalance_ignore_missing', 0 );
     $repl_use_get_port = choose_value( 'repl_use_get_port', 0 );
@@ -287,27 +294,6 @@ sub server_setting_cached {
         return MogileFS::Config->server_setting($key);
     }
     return $server_settings{$key};
-}
-
-my $memc;
-my $last_memc_server_fetch = 0;
-my $have_memc_module = eval "use Cache::Memcached; 1;";
-sub memcache_client {
-    return undef unless $have_memc_module;
-
-    # only reload the server list every 30 seconds
-    my $now = time();
-    return $memc if $last_memc_server_fetch > $now - 30;
-
-    my @servers = grep(/:\d+$/, split(/\s*,\s*/, MogileFS::Config->server_setting_cached("memcache_servers") || ""));
-    $last_memc_server_fetch = $now;
-
-    return ($memc = undef) unless @servers;
-
-    $memc ||= Cache::Memcached->new;
-    $memc->set_servers(\@servers);
-
-    return $memc;
 }
 
 my $cache_hostname;
