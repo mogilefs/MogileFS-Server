@@ -3,9 +3,11 @@ use strict;
 use base 'MogileFS::Cache';
 use Cache::Memcached;
 
-# memcache mappings are as follows:
-#   mogfid:<dmid>:<dkey> -> fidid
-#   mogdevids:<fidid>    -> \@devids  (and TODO: invalidate when deletion is run!)
+# --------------------------------------------------------------------------
+# Memcache mappings are as follows:
+#   mogf:<dmid>:<dkey> -> fidid
+#   mogd:<fidid> -> \@devids (and TODO: invalidate when deletion is run!)
+# --------------------------------------------------------------------------
 
 my $cache;
 
@@ -13,9 +15,21 @@ sub init {
     my $self = shift;
     $self->SUPER::init;
 
-    my @servers = split(/\s*,\s*/, $self->{servers} || '127.0.0.1:11211');
+    my @servers = grep(!/^$/, grep(s/^\s*|\s*$//g, split(',', $self->{servers})));
+    @servers = ('127.0.0.1:11211') unless @servers;
 
     $cache = Cache::Memcached->new;
+    $cache->set_servers(\@servers);
+    return $self;
+}
+
+sub refresh {
+    my $self = shift;
+
+    # backwards compatibility with previous cache implementation
+    my @servers = grep(!/^$/, grep(s/^\s*|\s*$//g, split(',', MogileFS::Config->server_setting_cached("memcache_servers"))));
+    return undef unless @servers;
+
     $cache->set_servers(\@servers);
     return $self;
 }
@@ -33,16 +47,6 @@ sub get {
 sub delete {
     my ($self, $key) = @_;
     return $cache->delete($self->hash($key));
-}
-
-sub hash {
-    my ($self, $key) = @_;
-    if ($key->{type} eq 'fid') {
-        return "mogfid:$key->{domain}:$key->{key}";
-    } elsif ($key->{type} eq 'devid') {
-        return "mogdevids:$key->{fid}";
-    }
-    return $key;
 }
 
 1;

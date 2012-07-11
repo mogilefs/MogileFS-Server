@@ -248,11 +248,21 @@ sub set_store {
 }
 
 # cache abstraction layer
-my ($cache, $cache_pid);
+my ($cache, $cache_pid, $last_cache_refresh);
 sub get_cache {
-    return $cache if $cache && $cache_pid == $$;
+    return undef if MogileFS->config('cache_type') eq 'none';
+    my $now = time();
+    if (!$last_cache_refresh && $cache && $cache_pid == $$) {
+        return $cache;
+    } elsif ($last_cache_refresh && $last_cache_refresh > ($now - 30)) {
+        return $cache;
+    }
+    # backwards compatibility with previous cache implementation
+    if (MogileFS->config('cache_type') eq '') {
+        $last_cache_refresh = $now;
+    }
     $cache_pid = $$;
-    return $cache = MogileFS::Cache->new;
+    return $cache = $cache ? $cache->refresh() : MogileFS::Cache->new;
 }
 
 sub domain_factory {

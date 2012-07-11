@@ -169,7 +169,7 @@ sub load_config {
     $node_timeout   = choose_value( 'node_timeout', 2 );
     $conn_timeout   = choose_value( 'conn_timeout', 2 );
 
-    choose_value( 'cache_type', "none" );
+    choose_value( 'cache_type', "" );
     choose_value( 'cache_servers', "" );
     choose_value( 'cache_ttl', 3600 );
 
