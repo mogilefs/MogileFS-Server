@@ -58,6 +58,7 @@ use MogileFS::FID;
 use MogileFS::DevFID;
 
 use MogileFS::Store;
+use MogileFS::Cache;
 
 use MogileFS::ReplicationPolicy::MultipleHosts;
 
@@ -244,6 +245,24 @@ sub set_store {
     my ($s) = @_;
     $store = $s;
     $store_pid = $$;
+}
+
+# cache abstraction layer
+my ($cache, $cache_pid, $last_cache_refresh);
+sub get_cache {
+    return undef if MogileFS->config('cache_type') eq 'none';
+    my $now = time();
+    if (!$last_cache_refresh && $cache && $cache_pid == $$) {
+        return $cache;
+    } elsif ($last_cache_refresh && $last_cache_refresh > ($now - 30)) {
+        return $cache;
+    }
+    # backwards compatibility with previous cache implementation
+    if (MogileFS->config('cache_type') eq '') {
+        $last_cache_refresh = $now;
+    }
+    $cache_pid = $$;
+    return $cache = $cache ? $cache->refresh() : MogileFS::Cache->new;
 }
 
 sub domain_factory {

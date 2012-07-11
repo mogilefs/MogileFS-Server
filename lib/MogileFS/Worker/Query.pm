@@ -552,7 +552,7 @@ sub cmd_file_debug {
         $args->{dmid} = $self->check_domain($args)
             or return $self->err_line('domain_not_found');
         return $self->err_line("no_key") unless $args->{key};
-        
+
         # now invoke the plugin, abort if it tells us to
         my $rv = MogileFS::run_global_hook('cmd_file_debug', $args);
         return $self->err_line('plugin_aborted')
@@ -1060,15 +1060,10 @@ sub cmd_get_paths {
     my MogileFS::Worker::Query $self = shift;
     my $args = shift;
 
-    # memcache mappings are as follows:
-    #  mogfid:<dmid>:<dkey> -> fidid
-    #  mogdevids:<fidid>    -> \@devids  (and TODO: invalidate when deletion is run!)
-
-    # if you specify 'noverify', that means a correct answer isn't needed and memcache can
-    # be used.
-    my $memc          = MogileFS::Config->memcache_client;
-    my $get_from_memc = $memc && $args->{noverify};
-    my $memcache_ttl  = MogileFS::Config->server_setting_cached("memcache_ttl") || 3600;
+    # if you specify 'noverify', that means a correct answer isn't needed
+    # and a cache can be used.
+    my $cache          = Mgd::get_cache();
+    my $get_from_cache = $cache && $args->{noverify};
 
     # validate domain for plugins
     $args->{dmid} = $self->check_domain($args)
@@ -1090,13 +1085,12 @@ sub cmd_get_paths {
 
     # get DB handle
     my $fid;
-    my $need_fid_in_memcache = 0;
-    my $mogfid_memkey = "mogfid:$args->{dmid}:$key";
-    if ($get_from_memc) {
-        if (my $fidid = $memc->get($mogfid_memkey)) {
+    my $need_fid_in_cache = 0;
+    if ($get_from_cache) {
+        if (my $fidid = $cache->get({ type => 'fid', domain => $args->{dmid}, key => $key })) {
             $fid = MogileFS::FID->new($fidid);
         } else {
-            $need_fid_in_memcache = 1;
+            $need_fid_in_cache = 1;
         }
     }
     unless ($fid) {
@@ -1106,8 +1100,9 @@ sub cmd_get_paths {
         $fid or return $self->err_line("unknown_key");
     }
 
-    # add to memcache, if needed.  for an hour.
-    $memc->set($mogfid_memkey, $fid->id, $memcache_ttl ) if $need_fid_in_memcache || ($memc && !$get_from_memc);
+    # add to cache, if needed.
+    $cache->set({ type => 'fid', domain => $args->{dmid}, key => $key }, $fid->id)
+        if $need_fid_in_cache || ($cache && !$get_from_cache);
 
     my $dmap = Mgd::device_factory()->map_by_id;
 
@@ -1115,22 +1110,22 @@ sub cmd_get_paths {
         paths => 0,
     };
 
-    # find devids that FID is on in memcache or db.
+    # find devids that FID is on in cache or db.
     my @fid_devids;
-    my $need_devids_in_memcache = 0;
-    my $devid_memkey = "mogdevids:" . $fid->id;
-    if ($get_from_memc) {
-        if (my $list = $memc->get($devid_memkey)) {
+    my $need_devids_in_cache = 0;
+    if ($get_from_cache) {
+        if (my $list = $cache->get({ type => 'devid', fid => $fid->id })) {
             @fid_devids = @$list;
         } else {
-            $need_devids_in_memcache = 1;
+            $need_devids_in_cache = 1;
         }
     }
     unless (@fid_devids) {
         Mgd::get_store()->slaves_ok(sub {
             @fid_devids = $fid->devids;
         });
-        $memc->set($devid_memkey, \@fid_devids, $memcache_ttl ) if $need_devids_in_memcache || ($memc && !$get_from_memc);
+        $cache->set({ type => 'devid', fid => $fid->id }, \@fid_devids)
+            if $need_devids_in_cache || ($cache && !$get_from_cache);
     }
 
     my @devices = map { $dmap->{$_} } @fid_devids;
@@ -1245,7 +1240,7 @@ sub cmd_edit_file {
     my MogileFS::Worker::Query $self = shift;
     my $args = shift;
 
-    my $memc = MogileFS::Config->memcache_client;
+    my $cache = Mgd::get_cache();
 
     # validate domain for plugins
     $args->{dmid} = $self->check_domain($args)
@@ -1262,12 +1257,11 @@ sub cmd_edit_file {
 
     # get DB handle
     my $fid;
-    my $need_fid_in_memcache = 0;
-    my $mogfid_memkey = "mogfid:$args->{dmid}:$key";
-    if (my $fidid = $memc->get($mogfid_memkey)) {
+    my $need_fid_in_cache = 0;
+    if (my $fidid = $cache->get({ type => 'fid', domain => $args->{dmid}, key => $key })) {
         $fid = MogileFS::FID->new($fidid);
     } else {
-        $need_fid_in_memcache = 1;
+        $need_fid_in_cache = 1;
     }
     unless ($fid) {
         Mgd::get_store()->slaves_ok(sub {
@@ -1276,27 +1270,28 @@ sub cmd_edit_file {
         $fid or return $self->err_line("unknown_key");
     }
 
-    # add to memcache, if needed.  for an hour.
-    $memc->add($mogfid_memkey, $fid->id, 3600) if $need_fid_in_memcache;
+    # add to cache, if needed.  for an hour.
+    $cache->set({ type => 'fid', domain => $args->{dmid}, key => $key }, $fid->id)
+        if $need_fid_in_cache;
 
     my $dmap = Mgd::device_factory()->map_by_id;
 
     my @devices_with_weights;
 
-    # find devids that FID is on in memcache or db.
+    # find devids that FID is on in cache or db.
     my @fid_devids;
-    my $need_devids_in_memcache = 0;
-    my $devid_memkey = "mogdevids:" . $fid->id;
-    if (my $list = $memc->get($devid_memkey)) {
+    my $need_devids_in_cache = 0;
+    if (my $list = $cache->get({ type => 'devid', fid => $fid->id })) {
         @fid_devids = @$list;
     } else {
-        $need_devids_in_memcache = 1;
+        $need_devids_in_cache = 1;
     }
     unless (@fid_devids) {
         Mgd::get_store()->slaves_ok(sub {
             @fid_devids = $fid->devids;
         });
-        $memc->add($devid_memkey, \@fid_devids, 3600) if $need_devids_in_memcache;
+        $cache->set({ type => 'devid', fid => $fid->id }, \@fid_devids)
+            if $need_devids_in_cache;
     }
 
     # is this fid still owned by this key?
@@ -1530,7 +1525,7 @@ sub cmd_fsck_reset {
     my $sto = Mgd::get_store();
     $sto->set_server_setting("fsck_opt_policy_only",
         ($args->{policy_only} ? "1" : undef));
-    $sto->set_server_setting("fsck_highest_fid_checked", 
+    $sto->set_server_setting("fsck_highest_fid_checked",
         ($args->{startpos} ? $args->{startpos} : "0"));
 
     $self->_do_fsck_reset or return $self->err_line;
