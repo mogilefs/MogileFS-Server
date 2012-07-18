@@ -18,7 +18,7 @@ sub sock {
     return $self->{sock} if $self->{sock};
     $self->{sock} = IO::Socket::INET->new(PeerAddr => $self->{ip},
                                           PeerPort => $self->{port},
-                                          Timeout  => $timeout);
+                                          Timeout  => $timeout) or die "Could not connect to mogstored on ".$self->{ip}.":".$self->{port};
     $self->{sock}->sockopt(SO_KEEPALIVE, 1);
     return $self->{sock};
 }
