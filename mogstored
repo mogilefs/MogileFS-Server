@@ -113,6 +113,7 @@ my $parent_pid = $$;
 $SIG{TERM} = $SIG{INT} = sub {
     return unless $$ == $parent_pid; # don't let this be inherited
     kill 'TERM', grep { $_ } keys %on_death;
+    $httpsrv->stop;
     POSIX::_exit(0);
 };
 
