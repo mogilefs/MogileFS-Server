@@ -23,6 +23,7 @@ use Mogstored::HTTPServer::Perlbal;
 use Mogstored::HTTPServer::Lighttpd;
 use Mogstored::HTTPServer::None;
 use Mogstored::HTTPServer::Apache;
+use Mogstored::HTTPServer::Nginx;
 use Mogstored::SideChannelListener;
 use Mogstored::SideChannelClient;
 
@@ -68,8 +69,8 @@ my %config_opts = (
                    );
 usage() unless Getopt::Long::GetOptions(%config_opts);
 
-die "Unknown server type.  Valid options: --server={perlbal,lighttpd,apache,none}"
-    unless $server =~ /^perlbal|lighttpd|apache|none$/;
+die "Unknown server type.  Valid options: --server={perlbal,lighttpd,apache,nginx,none}"
+    unless $server =~ /^perlbal|lighttpd|apache|nginx|none$/;
 
 $opt_config = $default_config if ! $opt_config && -e $default_config;
 load_config_file($opt_config => \%config_opts) if $opt_config && !$opt_skipconfig;
