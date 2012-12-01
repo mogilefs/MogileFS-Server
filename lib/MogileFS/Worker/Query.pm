@@ -485,6 +485,10 @@ sub cmd_updateclass {
     $args->{dmid} = $self->check_domain($args)
         or return $self->err_line('domain_not_found');
 
+    # call out to a hook that might modify the arguments for us, abort if it tells us to
+    my $rv = MogileFS::run_global_hook('cmd_updateclass', $args);
+    return $self->err_line('plugin_aborted') if defined $rv && ! $rv;
+
     my $dmid  = $args->{dmid};
     my $key   = $args->{key}        or return $self->err_line("no_key");
     my $class = $args->{class}      or return $self->err_line("no_class");
