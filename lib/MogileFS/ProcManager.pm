@@ -236,6 +236,9 @@ sub make_new_child {
         return $worker_conn;
     }
 
+    # let children have different random number seeds
+    srand();
+
     # as a child, we want to close these and ignore them
     $_->() foreach @prefork_cleanup;
     close($parents_ipc);
