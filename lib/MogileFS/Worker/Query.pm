@@ -1842,11 +1842,11 @@ This command is used to create a new file in MogileFS with the specified domain 
 
 =item B<dmid> = I<int>
 
-The id of domain the new file is being stored in
+B<(required)> The id of domain the new file is being stored in
 
 =item B<key> = I<string>
 
-The key for the new file
+B<(required)> The key for the new file
 
 =item B<class> = I<string>
 
