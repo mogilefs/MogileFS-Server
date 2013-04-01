@@ -1840,9 +1840,9 @@ This command is used to create a new file in MogileFS with the specified domain 
 
 =over
 
-=item B<dmid> = I<int>
+=item B<domain> = I<string>
 
-B<(required)> The id of domain the new file is being stored in
+B<(required)> The name of domain the new file is being stored in
 
 =item B<key> = I<string>
 
