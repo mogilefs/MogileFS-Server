@@ -866,7 +866,7 @@ sub cmd_delete_device {
     my $count = $sto->dbh->selectrow_array('SELECT COUNT(*) FROM file_on WHERE devid = ?', undef, $devid);
     return $self->err_line('device_has_files') if $count;
 
-    $sto->delete_device($devid);
+    $sto->delete_device($devid, $dev->host->id);
 
     return $self->cmd_clear_cache;
 }

@@ -1236,7 +1236,8 @@ sub update_device_usage {
 # IE; the user can't mark it dead then remove it all at once and cause their
 # cluster to implode.
 sub delete_device {
-    die "Unimplemented; needs further testing";
+    my ($self, $devid, $hostid) = @_;
+    return $self->dbh->do("DELETE FROM device WHERE devid = ? and hostid = ?;", undef, $devid, $hostid);
 }
 
 sub mark_fidid_unreachable {
