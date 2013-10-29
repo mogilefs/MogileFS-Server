@@ -850,6 +850,27 @@ sub cmd_create_device {
     die $@;  # rethrow;
 }
 
+sub cmd_delete_device {
+    my MogileFS::Worker::Query $self = shift;
+    my $args = shift;
+    my $devid = $args->{devid};
+    my $hostname = $args->{host};
+
+    # ensure device exist and match its host
+    my $dev = Mgd::device_factory()->get_by_id($devid);
+    return $self->err_line('no_device') unless $dev;
+    return $self->err_line('host_mismatch') unless $dev->host->hostname eq $hostname;
+
+    # ensure no files on device
+    my $sto = Mgd::get_store();
+    my $count = $sto->dbh->selectrow_array('SELECT COUNT(*) FROM file_on WHERE devid = ?', undef, $devid);
+    return $self->err_line('device_has_files') if $count;
+
+    $sto->delete_device($devid);
+
+    return $self->cmd_clear_cache;
+}
+
 sub cmd_create_domain {
     my MogileFS::Worker::Query $self = shift;
     my $args = shift;
@@ -1778,6 +1799,7 @@ sub err_line {
         'class_has_files' => "Class still has files, unable to delete",
         'class_not_found' => "Class not found",
         'db' => "Database error",
+        'device_has_files' => "Device still has files, unable to delete",
         'domain_has_files' => "Domain still has files, unable to delete",
         'domain_exists' => "That domain already exists",
         'domain_not_empty' => "Domain still has classes, unable to delete",
