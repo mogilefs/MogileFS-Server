@@ -1240,6 +1240,11 @@ sub delete_device {
     return $self->dbh->do("DELETE FROM device WHERE devid = ? and hostid = ?;", undef, $devid, $hostid);
 }
 
+sub file_on_device {
+    my ($self, $devid) = @_;
+    return $self->dbh->selectrow_array('SELECT COUNT(*) FROM file_on WHERE devid = ?', undef, $devid);
+}
+
 sub mark_fidid_unreachable {
     my ($self, $fidid) = @_;
     die "Your database does not support REPLACE! Reimplement mark_fidid_unreachable!" unless $self->can_replace;

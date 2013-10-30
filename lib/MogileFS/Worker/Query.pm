@@ -863,8 +863,7 @@ sub cmd_delete_device {
 
     # ensure no files on device
     my $sto = Mgd::get_store();
-    my $count = $sto->dbh->selectrow_array('SELECT COUNT(*) FROM file_on WHERE devid = ?', undef, $devid);
-    return $self->err_line('device_has_files') if $count;
+    return $self->err_line('device_has_files') if $sto->file_on_device($devid);
 
     $sto->delete_device($devid, $dev->host->id);
 
