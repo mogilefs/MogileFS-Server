@@ -871,6 +871,9 @@ sub cmd_delete_device {
     my $sto = Mgd::get_store();
     return $self->err_line('device_has_files') if $sto->file_on_device($devid);
 
+    # ensure no files to to device
+    return $self->err_line('device_in_queue') if $sto->file_to_device($devid);
+
     $sto->delete_device($devid, $dev->host->id);
 
     return $self->cmd_clear_cache;
@@ -1806,6 +1809,7 @@ sub err_line {
         'db' => "Database error",
         'device_has_files' => "Device still has files, unable to delete",
         'device_not_dead' => "Device isn't marked as dead, unable to delete",
+        'device_in_queue' => "Device is in queue to receive files",
         'domain_has_files' => "Domain still has files, unable to delete",
         'domain_exists' => "That domain already exists",
         'domain_not_empty' => "Domain still has classes, unable to delete",
