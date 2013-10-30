@@ -856,10 +856,16 @@ sub cmd_delete_device {
     my $devid = $args->{devid};
     my $hostname = $args->{host};
 
-    # ensure device exist and match its host
     my $dev = Mgd::device_factory()->get_by_id($devid);
+
+    # ensure device exists
     return $self->err_line('no_device') unless $dev;
+
+    # ensure device matches its host
     return $self->err_line('host_mismatch') unless $dev->host->hostname eq $hostname;
+
+    # ensure device is marked as dead
+    return $self->err_line('device_not_dead') unless $dev->status eq "dead";
 
     # ensure no files on device
     my $sto = Mgd::get_store();
@@ -1799,6 +1805,7 @@ sub err_line {
         'class_not_found' => "Class not found",
         'db' => "Database error",
         'device_has_files' => "Device still has files, unable to delete",
+        'device_not_dead' => "Device isn't marked as dead, unable to delete",
         'domain_has_files' => "Domain still has files, unable to delete",
         'domain_exists' => "That domain already exists",
         'domain_not_empty' => "Domain still has classes, unable to delete",
