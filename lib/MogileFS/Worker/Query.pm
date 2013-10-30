@@ -857,6 +857,7 @@ sub cmd_delete_device {
     my $hostname = $args->{host};
 
     my $dev = Mgd::device_factory()->get_by_id($devid);
+    my $sto = Mgd::get_store();
 
     # ensure device exists
     return $self->err_line('no_device') unless $dev;
@@ -864,15 +865,14 @@ sub cmd_delete_device {
     # ensure device matches its host
     return $self->err_line('host_mismatch') unless $dev->host->hostname eq $hostname;
 
-    # ensure device is marked as dead
-    return $self->err_line('device_not_dead') unless $dev->status eq "dead";
-
     # ensure no files on device
-    my $sto = Mgd::get_store();
     return $self->err_line('device_has_files') if $sto->file_on_device($devid);
 
-    # ensure no files to to device
+    # ensure no files is going to device
     return $self->err_line('device_in_queue') if $sto->file_to_device($devid);
+
+    # ensure device is marked as dead
+    return $self->err_line('device_not_dead') unless $dev->status eq "dead";
 
     $sto->delete_device($devid, $dev->host->id);
 
