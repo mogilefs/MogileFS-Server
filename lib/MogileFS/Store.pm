@@ -1227,10 +1227,10 @@ sub update_device_usage {
 }
 
 # This is unimplemented at the moment as we must verify:
-# - no file_on rows exist
-# - nothing in file_to_queue is going to attempt to use it
+# - no file_on rows exist                                      (DONE)(file_on_device = 0)
+# - nothing in file_to_queue is going to attempt to use it     (DONE)(file_to_device = 0)
 # - nothing in file_to_replicate is going to attempt to use it
-# - it's already been marked dead
+# - it's already been marked dead                              (DONE)($dev->status eq "dead")
 # - that all trackers are likely to know this :/
 # - ensure the devid can't be reused
 # IE; the user can't mark it dead then remove it all at once and cause their
