@@ -115,7 +115,7 @@ sub expired {
     return 0;
 }
 
-# may be overriden in subclass, called only on errors
+# may be overridden in subclass, called only on errors
 # The HTTP version of this will fake an HTTP response for LWP compatibility
 sub err {
     my ($self, $close_reason) = @_;
