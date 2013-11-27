@@ -33,7 +33,7 @@ my %pending_work = (); # 'job' -> [aref of pending work]
 $IsChild = 0;  # either false if we're the parent, or a MogileFS::Worker object
 
 # keep track of what all child pids are doing, and what jobs are being
-# satisifed.
+# satisfied.
 my %child  = ();    # pid -> MogileFS::Connection::Worker
 my %todie  = ();    # pid -> 1 (lists pids that we've asked to die)
 my %jobs   = ();    # jobname -> [ min, current ]
