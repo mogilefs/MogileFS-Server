@@ -42,7 +42,7 @@ sub was_deadlock_error {
     my $dbh = $self->dbh;
     return 0 unless $dbh->err;
     # 1205 is "lock wait timeout", but we should bomb out if we've
-    # alerady hung for that long.
+    # already hung for that long.
     return 1 if ($dbh->err == 1213);
 }
 
