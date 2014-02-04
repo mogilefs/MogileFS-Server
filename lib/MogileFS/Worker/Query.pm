@@ -272,9 +272,11 @@ sub cmd_create_open {
 
         last unless $ddev;
         next unless $ddev->not_on_hosts(map { $_->host } @dests);
+        next if $ddev->is_replicateonly;
 
         push @dests, $ddev;
     }
+
     return $self->err_line("no_devices") unless @dests;
 
     my $fidid = eval {

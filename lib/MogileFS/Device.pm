@@ -135,6 +135,10 @@ sub should_read_from {
     return $_[0]->can_read_from && ($_[0]->observed_readable || $_[0]->observed_writeable);
 }
 
+sub is_replicateonly {
+    return $_[0]->dstate->is_replicateonly;
+}
+
 # FIXME: Is there a (unrelated to this code) bug where new files aren't tested
 # against the free space limit before being stored or replicated somewhere?
 sub should_get_new_files {

@@ -373,6 +373,13 @@ sub upgrade_add_device_drain {
     }
 }
 
+sub upgrade_add_device_replicateonly {
+    my $self = shift;
+    unless ($self->column_type("device", "status") =~ /replicateonly/) {
+        $self->dowell("ALTER TABLE device MODIFY COLUMN status ENUM('alive', 'dead', 'down', 'readonly', 'replicateonly', 'drain')");
+    }
+}
+
 sub upgrade_modify_server_settings_value {
     my $self = shift;
     unless ($self->column_type("server_settings", "value") =~ /text/i) {

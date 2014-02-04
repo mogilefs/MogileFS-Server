@@ -244,7 +244,7 @@ sub TABLE_device {
     devid   MEDIUMINT UNSIGNED NOT NULL,
     hostid     MEDIUMINT UNSIGNED NOT NULL,
 
-    status  ENUM('alive','dead','down','readonly','drain'),
+    status  ENUM('alive','dead','down','readonly','replicateonly','drain'),
     weight  MEDIUMINT DEFAULT 100,
 
     mb_total   INT UNSIGNED,

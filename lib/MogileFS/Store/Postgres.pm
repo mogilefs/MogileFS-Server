@@ -194,7 +194,7 @@ sub TABLE_device {
     hostid      SMALLINT NOT NULL,
 
     status      VARCHAR(8),
-    CHECK       (status IN ('alive','dead','down','readonly','drain')),
+    CHECK       (status IN ('alive','dead','down','readonly','replicateonly','drain')),
     weight      INT DEFAULT 100,
 
     mb_total    INT,
@@ -291,6 +291,14 @@ sub upgrade_add_device_drain {
         $self->dowell("ALTER TABLE device MODIFY COLUMN status VARCHAR(8) CHECK(status IN ('alive', 'dead', 'down', 'readonly','drain'))");
     }
 }
+
+sub upgrade_add_device_replicateonly {
+    my $self = shift;
+    unless ($self->column_constraint("device", "status") =~ /replicateonly/) {
+        $self->dowell("ALTER TABLE device MODIFY COLUMN status VARCHAR(8) CHECK(status IN ('alive', 'dead', 'down', 'readonly','drain','replicateonly'))");
+    }
+}
+
 
 sub upgrade_modify_server_settings_value {
     my $self = shift;
