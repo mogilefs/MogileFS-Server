@@ -11,6 +11,11 @@
 
 use ExtUtils::MakeMaker;
 
+if ($^O eq "MSWin32") {
+    die "OS unsupported\n";
+    #tests hang and some prereqs are not available
+}
+
 my $exefiles = ["mogstored", "mogilefsd", "mogdbsetup", "mogautomount"];
 $exefiles = ["mogstored"] if exists $ENV{DANGABUILD_MOGSTOREDONLY};
 $exefiles = ["mogilefsd"] if exists $ENV{DANGABUILD_MOGILEFSDONLY};
