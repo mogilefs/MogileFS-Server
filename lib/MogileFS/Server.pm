@@ -128,6 +128,7 @@ sub run {
                                            Reuse     => 1,
                                            Listen    => 1024 )
             or die "Error creating socket: $@\n";
+	Mgd::log('info', "listening on port: " . $server->sockport());
         $server->sockopt(SO_KEEPALIVE, 1);
         $server->setsockopt(IPPROTO_TCP, TCP_NODELAY, 1);
 
