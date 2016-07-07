@@ -1,3 +1,9 @@
+mogilefs-server (2.72) stable; urgency=low
+
+  * pull from upstream
+
+ -- Vortex <aleksey.yakovenko@gmail.com>  Thu, 7 Jul 2016 23:14:11 -0200
+
 mogilefs-server (2.44-1) stable; urgency=low
 
   * pull from upstream
