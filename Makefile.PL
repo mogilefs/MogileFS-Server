@@ -29,6 +29,7 @@ WriteMakefile(
         'Getopt::Long'     => 0,
         'Symbol'           => 0,
         'Net::Netmask'     => 0,
+        'Net::Patricia'    => 0,
         fields            => 0,
         'IO::AIO'         => 0,
         'MogileFS::Client' => 0,

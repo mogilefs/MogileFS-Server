@@ -30,10 +30,14 @@ lib/MogileFS/IOStatWatcher.pm
 lib/MogileFS/Overview.pm
 lib/MogileFS/ProcManager.pm
 lib/MogileFS/Rebalance.pm
+lib/MogileFS/Network.pm
+lib/MogileFS/Plugin/ZoneLocal.pm
 lib/MogileFS/ReplicationPolicy.pm
 lib/MogileFS/ReplicationPolicy/MultipleDevices.pm
 lib/MogileFS/ReplicationPolicy/MultipleHosts.pm
 lib/MogileFS/ReplicationPolicy/Union.pm
+lib/MogileFS/ReplicationPolicy/HostsPerNetwork.pm
+lib/MogileFS/ReplicationPolicy/MultipleNetworks.pm
 lib/MogileFS/ReplicationRequest.pm
 lib/MogileFS/Server.pm
 lib/MogileFS/Store.pm
@@ -92,6 +96,9 @@ t/http.t
 t/mogstored-shutdown.t
 t/multiple-devices-replpol.t
 t/multiple-hosts-replpol.t
+t/hosts-per-zone-replpol.t
+t/multiple-networks-replpol.t
+t/network_zones.t
 t/replpolicy-parsing.t
 t/replpolicy.t
 t/store-sqlite.t
