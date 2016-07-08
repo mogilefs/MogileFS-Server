@@ -57,7 +57,9 @@ binary-indep: build install
 	dh_installdocs
 	dh_installman
 	dh_installdebconf
+	dh_systemd_enable
 	dh_installinit
+	dh_systemd_start
 	dh_installchangelogs
 	dh_link
 	dh_strip
