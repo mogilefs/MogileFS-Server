@@ -15,7 +15,7 @@ Description: storage node daemon for MogileFS
 
 Package: mogilefsd
 Architecture: all
-Depends: ${perl:Depends}, libdbd-mysql-perl, libdbi-perl, debconf (>= 1.2.0), libnet-netmask-perl, libwww-perl, libdanga-socket-perl
+Depends: ${perl:Depends}, libdbd-mysql-perl, libdbi-perl, debconf (>= 1.2.0), libnet-netmask-perl, libnet-patricia-perl, libwww-perl, libdanga-socket-perl
 Suggests: mogilefs-utils
 Description: scalable distributed filesystem from Danga Interactive
  MogileFS is an open-source, application-level distributed filesystem. It
