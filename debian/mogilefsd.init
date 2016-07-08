@@ -4,9 +4,8 @@ After=network.target
 
 [Service]
 Type=forking
-User=mogilefs
-EnvironmentFile=-/etc/default/mogilefsd
-ExecStart=/usr/bin/mogilefsd
+User=mogilefsd
+ExecStart=/usr/bin/mogilefsd --config=/etc/mogilefs/mogilefsd.conf --daemon
 KillMode=process
 Restart=on-failure
 
