@@ -386,9 +386,37 @@ sub cmd_create_close {
     my $dmid  = $args->{dmid};
     my $key   = $args->{key};
     my $fidid = $args->{fid}    or return $self->err_line("no_fid");
-    my $devid = $args->{devid}  or return $self->err_line("no_devid");
-    my $path  = $args->{path}   or return $self->err_line("no_path");
     my $checksum = $args->{checksum};
+    my $dev_count;
+    my @devids;
+    my @paths;
+
+    if (defined $args->{dev_count}) {
+    	$dev_count = $args->{dev_count};
+        for my $i (1 .. $dev_count) {
+            my $devid = $args->{"devid_$i"};
+            my $path = $args->{"path_$i"};
+	    push @devids, $devid if defined $devid;
+	    push @paths, $path if defined $path;
+	}
+    	if ((scalar(@devids) != scalar(@paths)) || (scalar(@devids) != $dev_count)) {
+    	    return $self->err_line("bogus_args");
+    	}
+    } else {
+	$dev_count = 1;
+	my $devid = $args->{devid};  
+	my $path = $args->{path};
+	push @devids, $devid if defined $devid;
+	push @paths, $path if defined $path;
+    }
+
+    if (scalar(@devids) == 0) {
+        return $self->err_line("no_devid");
+    }
+
+    if (scalar(@paths) == 0) {
+        return $self->err_line("no_path");
+    }
 
     if ($checksum) {
         $checksum = eval { MogileFS::Checksum->from_string($fidid, $checksum) };
@@ -396,11 +424,18 @@ sub cmd_create_close {
     }
 
     my $fid  = MogileFS::FID->new($fidid);
-    my $dfid = MogileFS::DevFID->new($devid, $fid);
+    my @dfids;
+    foreach my $devid (@devids) {
+        push @dfids, MogileFS::DevFID->new($devid, $fid);
+    }
 
     # is the provided path what we'd expect for this fid/devid?
-    return $self->err_line("bogus_args")
-        unless $path eq $dfid->url;
+    for my $i (0 .. $dev_count-1) {
+        my $path = $paths[$i];
+        my $dfid = $dfids[$i];
+        return $self->err_line("bogus_args")
+            unless $path eq $dfid->url;
+    }
 
     my $sto = Mgd::get_store();
 
@@ -413,13 +448,17 @@ sub cmd_create_close {
 
     # Protect against leaving orphaned uploads.
     my $failed = sub {
-        $dfid->add_to_db;
+        foreach my $dfid (@dfids) {
+            $dfid->add_to_db;
+	}
         $fid->delete;
     };
 
-    unless ($trow->{devids} =~ m/\b$devid\b/) {
-        $failed->();
-        return $self->err_line("invalid_destdev", "File uploaded to invalid dest $devid. Valid devices were: " . $trow->{devids});
+    foreach my $devid (@devids) {
+        unless ($trow->{devids} =~ m/\b$devid\b/) {
+            $failed->();
+            return $self->err_line("invalid_destdev", "File uploaded to invalid dest $devid. Valid devices were: " . $trow->{devids});
+    	}
     }
 
     # if a temp file is closed without a provided-key, that means to
@@ -429,37 +468,41 @@ sub cmd_create_close {
         return $self->ok_line;
     }
 
-    # get size of file and verify that it matches what we were given, if anything
-    my $httpfile = MogileFS::HTTPFile->at($path);
-    my $size = $httpfile->size;
+    # get file size and verify file write result
+    my $size;
+    foreach my $path (@paths) {
+	# get size of file and verify that it matches what we were given, if anything
+	my $httpfile = MogileFS::HTTPFile->at($path);
+	$size = $httpfile->size;
 
-    # size check is optional? Needs to support zero byte files.
-    $args->{size} = -1 unless $args->{size};
-    if (!defined($size) || $size == MogileFS::HTTPFile::FILE_MISSING) {
-        # storage node is unreachable or the file is missing
-        my $type    = defined $size ? "missing" : "cantreach";
-        my $lasterr = MogileFS::Util::last_error();
-        $failed->();
-        return $self->err_line("size_verify_error", "Expected: $args->{size}; actual: 0 ($type); path: $path; error: $lasterr")
-    }
+	# size check is optional? Needs to support zero byte files.
+	$args->{size} = -1 unless $args->{size};
+	if (!defined($size) || $size == MogileFS::HTTPFile::FILE_MISSING) {
+	    # storage node is unreachable or the file is missing
+	    my $type    = defined $size ? "missing" : "cantreach";
+	    my $lasterr = MogileFS::Util::last_error();
+	    $failed->();
+	    return $self->err_line("size_verify_error", "Expected: $args->{size}; actual: 0 ($type); path: $path; error: $lasterr")
+	}
 
-    if ($args->{size} > -1 && ($args->{size} != $size)) {
-        $failed->();
-        return $self->err_line("size_mismatch", "Expected: $args->{size}; actual: $size; path: $path")
-    }
+	if ($args->{size} > -1 && ($args->{size} != $size)) {
+	    $failed->();
+	    return $self->err_line("size_mismatch", "Expected: $args->{size}; actual: $size; path: $path")
+	}
 
-    # checksum validation is optional as it can be very expensive
-    # However, we /always/ verify it if the client wants us to, even
-    # if the class does not enforce or store it.
-    if ($checksum && $args->{checksumverify}) {
-        my $alg = $checksum->hashname;
-        my $actual = $httpfile->digest($alg, sub { $self->still_alive });
-        if ($actual ne $checksum->{checksum}) {
-            $failed->();
-            $actual = "$alg:" . unpack("H*", $actual);
-            return $self->err_line("checksum_mismatch",
-                           "Expected: $checksum; actual: $actual; path: $path");
-        }
+	# checksum validation is optional as it can be very expensive
+	# However, we /always/ verify it if the client wants us to, even
+	# if the class does not enforce or store it.
+	if ($checksum && $args->{checksumverify}) {
+	    my $alg = $checksum->hashname;
+	    my $actual = $httpfile->digest($alg, sub { $self->still_alive });
+	    if ($actual ne $checksum->{checksum}) {
+		$failed->();
+		$actual = "$alg:" . unpack("H*", $actual);
+		return $self->err_line("checksum_mismatch",
+			       "Expected: $checksum; actual: $actual; path: $path");
+	    }
+	}
     }
 
     # see if we have a fid for this key already
@@ -476,7 +519,9 @@ sub cmd_create_close {
     # TODO: check for EIO?
 
     # insert file_on row
-    $dfid->add_to_db;
+    foreach my $dfid (@dfids) {
+    	$dfid->add_to_db;
+    }
 
     $checksum->maybe_save($dmid, $trow->{classid}) if $checksum;
 
@@ -486,7 +531,7 @@ sub cmd_create_close {
                             key     => $key,
                             length  => $size,
                             classid => $trow->{classid},
-                            devcount => 1,
+                            devcount => $dev_count
                             );
 
     # mark it as needing replicating:
