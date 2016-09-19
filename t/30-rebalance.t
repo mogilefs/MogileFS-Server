@@ -242,7 +242,7 @@ if ($res) {
 sleep 3;
 
 {
-    my $iters = 30;
+    my $iters = 60;
     my ($to_repl_rows, $to_queue_rows);
     while ($iters) {
         $iters--;
