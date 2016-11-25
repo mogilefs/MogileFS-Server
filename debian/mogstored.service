@@ -1,0 +1,14 @@
+[Unit]
+Description=MogileFS Storage service
+After=network.target
+
+[Service]
+Type=forking
+User=mogstored
+EnvironmentFile=-/etc/default/mogstored
+ExecStart=/usr/bin/mogstored
+KillMode=process
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

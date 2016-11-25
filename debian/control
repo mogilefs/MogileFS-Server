@@ -2,7 +2,7 @@ Source: mogilefs-server
 Section: perl
 Priority: optional
 Maintainer: Jonathan Steinert <deb@hachi.kuiki.net>
-Build-Depends-Indep: debhelper (>= 4.1.40), perl (>= 5.6.0-16), libstring-crc32-perl
+Build-Depends-Indep: debhelper (>= 4.1.40), dh-systemd (>= 1.5), perl (>= 5.6.0-16), libstring-crc32-perl
 Standards-Version: 3.6.1.0
 
 Package: mogstored
@@ -15,7 +15,7 @@ Description: storage node daemon for MogileFS
 
 Package: mogilefsd
 Architecture: all
-Depends: ${perl:Depends}, libdbd-mysql-perl, libdbi-perl, debconf (>= 1.2.0), libnet-netmask-perl, libwww-perl, libdanga-socket-perl
+Depends: ${perl:Depends}, libdbd-mysql-perl, libdbi-perl, debconf (>= 1.2.0), libnet-netmask-perl, libnet-patricia-perl, libwww-perl, libdanga-socket-perl
 Suggests: mogilefs-utils
 Description: scalable distributed filesystem from Danga Interactive
  MogileFS is an open-source, application-level distributed filesystem. It
