@@ -1,3 +1,9 @@
+mogilefs-server (2.72-1) stable; urgency=medium
+
+  * add build-dependency on dh-systemd.
+
+ -- Myhailo Danylenko <isbear@isbear.org.ua>  Fri, 25 Nov 2016 10:27:47 +0200
+
 mogilefs-server (2.72) stable; urgency=low
 
   * pull from upstream
