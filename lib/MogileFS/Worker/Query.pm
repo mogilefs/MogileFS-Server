@@ -386,8 +386,29 @@ sub cmd_create_close {
     my $dmid  = $args->{dmid};
     my $key   = $args->{key};
     my $fidid = $args->{fid}    or return $self->err_line("no_fid");
-    my $devid = $args->{devid}  or return $self->err_line("no_devid");
-    my $path  = $args->{path}   or return $self->err_line("no_path");
+    
+    my @devids;
+    if (my @dev_args = grep /^devid_\d+$/, keys %$args) {
+      my @dev_indices = sort { $a <=> $b } map /^devid_(\d+)$/, @dev_args;
+      @devids = map $args->{"devid_$_"}, @dev_indices;
+    } elsif ($args->{devid}) {
+      @devids = ($args->{devid});
+    } else {
+      return $self->err_line("no_devid");
+    }
+
+    my @paths;
+    if (my @path_args = grep /^path_\d+$/, keys %$args) {
+      my @path_indices = sort { $a <=> $b } map /^path_(\d+)$/, @path_args;
+      @paths = map $args->{"path_$_"}, @path_indices;
+    } elsif ($args->{path}) {
+      @paths = ($args->{path});
+    } else {
+      return $self->err_line("no_path");
+    }
+
+    return $self->err_line("bogus_args") unless @devids == @paths;
+
     my $checksum = $args->{checksum};
 
     if ($checksum) {
@@ -396,11 +417,6 @@ sub cmd_create_close {
     }
 
     my $fid  = MogileFS::FID->new($fidid);
-    my $dfid = MogileFS::DevFID->new($devid, $fid);
-
-    # is the provided path what we'd expect for this fid/devid?
-    return $self->err_line("bogus_args")
-        unless $path eq $dfid->url;
 
     my $sto = Mgd::get_store();
 
@@ -410,57 +426,6 @@ sub cmd_create_close {
     # should still be fixed better once more scalable locking is available.
     my $trow = $sto->delete_and_return_tempfile_row($fidid) or
         return $self->err_line("no_temp_file");
-
-    # Protect against leaving orphaned uploads.
-    my $failed = sub {
-        $dfid->add_to_db;
-        $fid->delete;
-    };
-
-    unless ($trow->{devids} =~ m/\b$devid\b/) {
-        $failed->();
-        return $self->err_line("invalid_destdev", "File uploaded to invalid dest $devid. Valid devices were: " . $trow->{devids});
-    }
-
-    # if a temp file is closed without a provided-key, that means to
-    # delete it.
-    unless (valid_key($key)) {
-        $failed->();
-        return $self->ok_line;
-    }
-
-    # get size of file and verify that it matches what we were given, if anything
-    my $httpfile = MogileFS::HTTPFile->at($path);
-    my $size = $httpfile->size;
-
-    # size check is optional? Needs to support zero byte files.
-    $args->{size} = -1 unless $args->{size};
-    if (!defined($size) || $size == MogileFS::HTTPFile::FILE_MISSING) {
-        # storage node is unreachable or the file is missing
-        my $type    = defined $size ? "missing" : "cantreach";
-        my $lasterr = MogileFS::Util::last_error();
-        $failed->();
-        return $self->err_line("size_verify_error", "Expected: $args->{size}; actual: 0 ($type); path: $path; error: $lasterr")
-    }
-
-    if ($args->{size} > -1 && ($args->{size} != $size)) {
-        $failed->();
-        return $self->err_line("size_mismatch", "Expected: $args->{size}; actual: $size; path: $path")
-    }
-
-    # checksum validation is optional as it can be very expensive
-    # However, we /always/ verify it if the client wants us to, even
-    # if the class does not enforce or store it.
-    if ($checksum && $args->{checksumverify}) {
-        my $alg = $checksum->hashname;
-        my $actual = $httpfile->digest($alg, sub { $self->still_alive });
-        if ($actual ne $checksum->{checksum}) {
-            $failed->();
-            $actual = "$alg:" . unpack("H*", $actual);
-            return $self->err_line("checksum_mismatch",
-                           "Expected: $checksum; actual: $actual; path: $path");
-        }
-    }
 
     # see if we have a fid for this key already
     my $old_fid = MogileFS::FID->new_from_dmid_and_key($dmid, $key);
@@ -473,21 +438,86 @@ sub cmd_create_close {
         $old_fid->delete;
     }
 
-    # TODO: check for EIO?
+    my $devcount = 0;
 
-    # insert file_on row
-    $dfid->add_to_db;
+    for my $idx (0 .. $#devids) {
+        my ($devid, $path) = ($devids[$idx], $paths[$idx]);
+        my $dfid = MogileFS::DevFID->new($devid, $fid);
 
-    $checksum->maybe_save($dmid, $trow->{classid}) if $checksum;
+        # Protect against leaving orphaned uploads.
+        my $failed = sub {
+            $dfid->add_to_db;
+            $fid->delete;
+        };
 
-    $sto->replace_into_file(
-                            fidid   => $fidid,
-                            dmid    => $dmid,
-                            key     => $key,
-                            length  => $size,
-                            classid => $trow->{classid},
-                            devcount => 1,
-                            );
+        # is the provided path what we'd expect for this fid/devid?
+        unless ($path eq $dfid->url) {
+            $failed->();
+            return $self->err_line("bogus_args");
+        }
+
+        unless ($trow->{devids} =~ m/\b$devid\b/) {
+            $failed->();
+            return $self->err_line("invalid_destdev", "File uploaded to invalid dest $devid. Valid devices were: " . $trow->{devids});
+        }
+
+        # if a temp file is closed without a provided-key, that means to
+        # delete it.
+        unless (valid_key($key)) {
+            $failed->();
+            return $self->ok_line;
+        }
+
+        # get size of file and verify that it matches what we were given, if anything
+        my $httpfile = MogileFS::HTTPFile->at($path);
+        my $size = $httpfile->size;
+
+        # size check is optional? Needs to support zero byte files.
+        $args->{size} = -1 unless $args->{size};
+        if (!defined($size) || $size == MogileFS::HTTPFile::FILE_MISSING) {
+            # storage node is unreachable or the file is missing
+            my $type    = defined $size ? "missing" : "cantreach";
+            my $lasterr = MogileFS::Util::last_error();
+            $failed->();
+            return $self->err_line("size_verify_error", "Expected: $args->{size}; actual: 0 ($type); path: $path; error: $lasterr")
+        }
+
+        if ($args->{size} > -1 && ($args->{size} != $size)) {
+            $failed->();
+            return $self->err_line("size_mismatch", "Expected: $args->{size}; actual: $size; path: $path")
+        }
+
+        # checksum validation is optional as it can be very expensive
+        # However, we /always/ verify it if the client wants us to, even
+        # if the class does not enforce or store it.
+        if ($checksum && $args->{checksumverify}) {
+            my $alg = $checksum->hashname;
+            my $actual = $httpfile->digest($alg, sub { $self->still_alive });
+            if ($actual ne $checksum->{checksum}) {
+                $failed->();
+                $actual = "$alg:" . unpack("H*", $actual);
+                return $self->err_line("checksum_mismatch",
+                            "Expected: $checksum; actual: $actual; path: $path");
+            }
+        }
+
+        # TODO: check for EIO?
+
+        # insert file_on row
+        $dfid->add_to_db;
+        $devcount ++;
+
+        $checksum->maybe_save($dmid, $trow->{classid}) if $checksum;
+
+        $sto->replace_into_file(
+                                fidid   => $fidid,
+                                dmid    => $dmid,
+                                key     => $key,
+                                length  => $size,
+                                classid => $trow->{classid},
+                                devcount => $devcount,
+                                );
+    }
 
     # mark it as needing replicating:
     $fid->enqueue_for_replication();
