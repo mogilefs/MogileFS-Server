@@ -513,6 +513,10 @@ sub cmd_updateclass {
     my $rv = MogileFS::run_global_hook('cmd_updateclass', $args);
     return $self->err_line('plugin_aborted') if defined $rv && ! $rv;
 
+    # call out to a hook that might modify the arguments for us, abort if it tells us to
+    my $rv = MogileFS::run_global_hook('cmd_updateclass', $args);
+    return $self->err_line('plugin_aborted') if defined $rv && ! $rv;
+
     my $dmid  = $args->{dmid};
     my $key   = $args->{key};
     valid_key($key) or return $self->err_line("no_key");
