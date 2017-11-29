@@ -129,14 +129,57 @@ sub release_lock {
 }
 
 sub lock_queue {
-    my ($self, $type) = @_;
-    my $lock = $self->get_lock('mfsd:' . $type, 30);
+    my ($self, $type) = @_;    
+    my $dsn = $self->{dsn}; 
+    my $tmp_dbname = '';
+    if($dsn =~ /:/i)
+    {
+        my @dsn_array = split(/\:/, $dsn); 
+        my $len_dsn = @dsn_array;
+        if($len_dsn>=2)
+        {
+            $tmp_dbname = $dsn_array[2];
+        }
+    }
+    my $newlock_name = 'mfsd:';
+    if ($tmp_dbname ne '')
+    {
+        $newlock_name .= $tmp_dbname.':'.$type;
+    }
+    else
+    {
+        $newlock_name .= $type;
+    }    
+    print $newlock_name;
+    my $lock = $self->get_lock($newlock_name, 30);
     return $lock ? 1 : 0;
 }
 
 sub unlock_queue {
     my ($self, $type) = @_;
-    my $lock = $self->release_lock('mfsd:' . $type);
+    my $dsn = $self->{dsn}; 
+    my $tmp_dbname = '';
+    if($dsn =~ /:/i)
+    {
+        my @dsn_array = split(/\:/, $dsn); 
+        my $len_dsn = @dsn_array;
+        if($len_dsn>=2)
+        {
+            $tmp_dbname = $dsn_array[2];
+        }
+    }
+    my $newlock_name = 'mfsd:';
+    if ($tmp_dbname ne '')
+    {
+        $newlock_name .= $tmp_dbname.':'.$type;
+    }
+    else
+    {
+        $newlock_name .= $type;
+    }    
+    print $newlock_name;
+    
+    my $lock = $self->release_lock($newlock_name);
     return $lock ? 1 : 0;
 }
 
