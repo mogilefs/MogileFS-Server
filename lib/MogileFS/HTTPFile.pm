@@ -112,8 +112,8 @@ sub on_size_response {
     if ($res->is_success) {
         my $size = $res->header('content-length');
         if (! defined $size &&
-            $res->header('server') =~ m/^lighttpd/) {
-            # lighttpd 1.4.x (main release) does not return content-length for
+            $res->header('server') =~ m/^lighttpd|^Apache/) {
+            # lighttpd 1.4.x (main release) and apache 2.x does not return content-length for
             # 0 byte files.
             $self->{_size} = 0;
             return 0;

@@ -361,7 +361,7 @@ sub sort_devs_by_freespace {
     } @_;
 
     my @list =
-        MogileFS::Util::weighted_list(splice(@devices_with_weights, 0, 20));
+        MogileFS::Util::weighted_list(splice(@devices_with_weights, 0, 100));
 
     return @list;
 }
