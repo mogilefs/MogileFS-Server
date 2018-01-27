@@ -1842,6 +1842,66 @@ __END__
 
 MogileFS::Worker::Query -- implements the MogileFS client protocol
 
+=head1 SUPPORTED COMMANDS
+
+This is a list of supported commands that can be sent to the tracker.
+
+=head2 create_open
+
+This command is used to create a new file in MogileFS with the specified domain and key.
+
+=head3 Parameters
+
+=over
+
+=item B<domain> = I<string>
+
+B<(required)> The name of domain the new file is being stored in
+
+=item B<key> = I<string>
+
+B<(required)> The key for the new file
+
+=item B<class> = I<string>
+
+The class to use for the new file
+
+=item B<multi_dest> = I<bool>
+
+a boolean indicating that multiple target mogstored devices should be returned
+
+=item B<size> = I<int>
+
+This is the estimated number of bytes for the new file, it is used to ensure returned devices have enough free space.
+
+=back
+
+=head3 Response
+
+=over
+
+=item B<fid> = I<int>
+
+The id of the new file.
+
+=item B<devid> = I<int>
+
+The id of the device this file will be stored on. (Only returned when B<multi_dest> is false)
+
+=item B<path> = I<url>
+
+The url of the mogstored devices to store the file on. (Only returned when B<multi_dest> is false)
+
+=item B<dev_count> = I<int>
+
+=item B<devid_#> = I<int>
+
+=item B<path_#> = I<url>
+
+When B<multi_dest> is true, B<dev_count> indicates the number of potential mogstored devices that are being returned, with a B<devid_#> and B<path_#> for each potential device, # is a value between 1 and B<dev_count>, inclusive.
+
+=back
+
 =head1 SEE ALSO
 
 L<MogileFS::Worker>
