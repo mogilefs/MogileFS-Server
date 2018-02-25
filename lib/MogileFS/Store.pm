@@ -1242,16 +1242,27 @@ sub update_device_usages {
 }
 
 # This is unimplemented at the moment as we must verify:
-# - no file_on rows exist
-# - nothing in file_to_queue is going to attempt to use it
-# - nothing in file_to_replicate is going to attempt to use it
-# - it's already been marked dead
-# - that all trackers are likely to know this :/
-# - ensure the devid can't be reused
+# - no file_on rows exist                                      (DONE)(file_on_device = 0)
+# - nothing in file_to_queue is going to attempt to use it     (DONE)(file_to_device = 0)
+# - nothing in file_to_replicate is going to attempt to use it (SKIP)(no file on it means no file will be replicated from. "dead" means no file can go there)
+# - it's already been marked dead                              (DONE)($dev->status eq "dead")
+# - that all trackers are likely to know this :/               (SKIP)(all trackers should point to the same database to share this info)
+# - ensure the devid can't be reused                           (DONE)(keep PRI devid, set hostid = 0)
 # IE; the user can't mark it dead then remove it all at once and cause their
 # cluster to implode.
 sub delete_device {
-    die "Unimplemented; needs further testing";
+    my ($self, $devid, $hostid) = @_;
+    return $self->dbh->do("UPDATE device SET hostid = 0 where devid = ?", undef, $devid);
+}
+
+sub file_on_device {
+    my ($self, $devid) = @_;
+    return $self->dbh->selectrow_array('SELECT COUNT(*) FROM file_on WHERE devid = ?', undef, $devid);
+}
+
+sub file_to_device {
+    my ($self, $devid) = @_;
+    return $self->dbh->selectrow_array('SELECT COUNT(*) FROM file_to_queue WHERE arg like ?', undef, "%$devid%");
 }
 
 sub set_device_weight {
@@ -1447,7 +1458,7 @@ sub get_all_hosts {
 sub get_all_devices {
     my ($self) = @_;
     my $sth = $self->dbh->prepare("SELECT /*!40000 SQL_CACHE */ devid, hostid, mb_total, " .
-                                  "mb_used, mb_asof, status, weight FROM device");
+                                  "mb_used, mb_asof, status, weight FROM device where hostid > 0");
     $self->condthrow;
     $sth->execute;
     my @return;

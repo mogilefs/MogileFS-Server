@@ -850,6 +850,35 @@ sub cmd_create_device {
     die $@;  # rethrow;
 }
 
+sub cmd_delete_device {
+    my MogileFS::Worker::Query $self = shift;
+    my $args = shift;
+    my $devid = $args->{devid};
+    my $hostname = $args->{host};
+
+    my $dev = Mgd::device_factory()->get_by_id($devid);
+    my $sto = Mgd::get_store();
+
+    # ensure device exists
+    return $self->err_line('no_device') unless $dev;
+
+    # ensure device matches its host
+    return $self->err_line('host_mismatch') unless $dev->host->hostname eq $hostname;
+
+    # ensure no files on device
+    return $self->err_line('device_has_files') if $sto->file_on_device($devid);
+
+    # ensure no files is going to device
+    return $self->err_line('device_in_queue') if $sto->file_to_device($devid);
+
+    # ensure device is marked as dead
+    return $self->err_line('device_not_dead') unless $dev->status eq "dead";
+
+    $sto->delete_device($devid, $dev->host->id);
+
+    return $self->cmd_clear_cache;
+}
+
 sub cmd_create_domain {
     my MogileFS::Worker::Query $self = shift;
     my $args = shift;
@@ -1778,6 +1807,9 @@ sub err_line {
         'class_has_files' => "Class still has files, unable to delete",
         'class_not_found' => "Class not found",
         'db' => "Database error",
+        'device_has_files' => "Device still has files, unable to delete",
+        'device_not_dead' => "Device isn't marked as dead, unable to delete",
+        'device_in_queue' => "Device is in queue to receive files",
         'domain_has_files' => "Domain still has files, unable to delete",
         'domain_exists' => "That domain already exists",
         'domain_not_empty' => "Domain still has classes, unable to delete",
