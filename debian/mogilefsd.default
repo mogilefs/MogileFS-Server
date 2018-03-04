@@ -1,0 +1,9 @@
+# Defaults for mogilefsd - sourced by /etc/init.d/mogilefsd
+
+# Start mogilefsd on boot?
+START=yes
+
+# Startup options
+DAEMON_OPTS=""
+
+MOGILEFSD_RUNASUSER=mogile
