@@ -296,6 +296,9 @@ sub log {
 1;
 __END__
 #Just for MakeMaker's kinda lame regexp for ABSTRACT_FROM
-=dummypod
+=pod
+
 mogilefs::server - MogileFS (distributed filesystem) server.
+
+=cut
 
