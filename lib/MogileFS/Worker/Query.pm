@@ -753,8 +753,7 @@ sub cmd_list_keys {
     my $ret = { key_count => 0, next_after => '' };
     foreach my $key (@$keys) {
         $ret->{key_count}++;
-        $ret->{next_after} = $key
-            if $key gt $ret->{next_after};
+        $ret->{next_after} = $key;
         $ret->{"key_$ret->{key_count}"} = $key;
     }
     return $self->ok_line($ret);
