@@ -98,13 +98,6 @@ my $httpsrv       = $httpsrv_class->new(
                                         bin      => $serverbin,
                                         );
 
-# Configure Perlbal HTTP listener after daemonization since it can create a
-# kqueue on *BSD.  kqueue descriptors are automatically invalidated on fork(),
-# making them unusable after daemonize.  For non-Perlbal, starting the
-# server before daemonization improves error reporting as daemonization
-# redirects stdout/stderr to /dev/null.
-$httpsrv->start if $server ne "perlbal";
-
 if ($opt_daemonize) {
     $httpsrv->pre_daemonize;
     Perlbal::daemonize();
@@ -112,8 +105,7 @@ if ($opt_daemonize) {
     print "Running.\n";
 }
 
-# It is now safe for Perlbal to create a kqueue
-$httpsrv->start if $server eq "perlbal";
+$httpsrv->start;
 
 $httpsrv->post_daemonize;
 
@@ -123,6 +115,7 @@ my $parent_pid = $$;
 $SIG{TERM} = $SIG{INT} = sub {
     return unless $$ == $parent_pid; # don't let this be inherited
     kill 'TERM', grep { $_ } keys %on_death;
+    $httpsrv->stop;
     POSIX::_exit(0);
 };
 
@@ -134,6 +127,10 @@ setup_sidechannel_listener();
 
 # now start the main loop
 Perlbal::run();
+
+END {
+    $httpsrv->stop if $$ == $parent_pid;
+}
 
 ############################################################################
 

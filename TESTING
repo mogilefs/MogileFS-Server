@@ -34,6 +34,7 @@ MOGTEST_DBUSER
 MOGTEST_DBPASS
 MOGTEST_DBROOTUSER
 MOGTEST_DBROOTPASS
+MOGTEST_MOGSTORED
 
 Other use test notes:
 ---------------------
@@ -43,4 +44,6 @@ Other use test notes:
   "PATH=../MogileFS-Utils/:$PATH PERL5LIB=../perl-MogileFS-Client/lib" 
 - You can control the disk space used for the test mogstored's by setting
   TMPDIR.
+- With MOGTEST_MOGSTORED one of the implemented 3rd party webservers in
+  mogstored can be used instead of the default perlbal.
 

@@ -89,14 +89,14 @@ ok($tmptrack->mogadm("device", "add", "hostC", 6), "created dev6 on hostC");
 
 # create a couple hundred files now
 my $n_files = 300;
-diag("Creating $n_files files...");
+note("Creating $n_files files...");
 for my $n (1..$n_files) {
     my $fh = $mogc->new_file("manyhundred_$n", "2copies")
         or die "Failed to create manyhundred_$n: " . $mogc->errstr;
     my $data = "File number $n.\n" x 128;
     print $fh $data;
     close($fh) or die "Failed to close manyhundred_$n";
-    diag("created $n/$n_files") if $n % 10 == 0;
+    note("created $n/$n_files") if $n % 10 == 0;
 }
 pass("Created a ton of files");
 
@@ -113,7 +113,7 @@ pass("Created a ton of files");
         $to_repl_rows = $dbh->selectrow_array("SELECT COUNT(*) FROM file_to_replicate");
         $to_queue_rows = $dbh->selectrow_array("SELECT COUNT(*) FROM file_to_queue");
         last if $to_repl_rows eq 0 && $to_queue_rows eq 0;
-        diag("Files to replicate: file_to_replicate=$to_repl_rows file_to_queue=$to_queue_rows");
+        note("Files to replicate: file_to_replicate=$to_repl_rows file_to_queue=$to_queue_rows");
         sleep 1;
     }
     die "Failed to replicate all $n_files files" if $to_repl_rows || $to_queue_rows;
@@ -249,7 +249,7 @@ sleep 3;
         $to_repl_rows = $dbh->selectrow_array("SELECT COUNT(*) FROM file_to_replicate");
         $to_queue_rows = $dbh->selectrow_array("SELECT COUNT(*) FROM file_to_queue");
         last if $to_repl_rows eq 0 && $to_queue_rows eq 0;
-        diag("Files to rebalance: file_to_replicate=$to_repl_rows file_to_queue=$to_queue_rows");
+        note("Files to rebalance: file_to_replicate=$to_repl_rows file_to_queue=$to_queue_rows");
         sleep 1;
     }
     die "Failed to rebalance all files" if $to_repl_rows || $to_queue_rows;

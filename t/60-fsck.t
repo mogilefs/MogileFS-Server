@@ -364,7 +364,7 @@ use Data::Dumper;
 
 # stall fsck with a non-responsive host
 {
-    is(kill("STOP", $ms1->pid), 1, "send SIGSTOP to mogstored1");
+    is(kill("STOP", -$ms1->pid), 1, "send SIGSTOP to mogstored1");
     wait_for_monitor($be) foreach (1..3);
 
     shutdown_worker($admin, "job_master");
@@ -379,7 +379,7 @@ use Data::Dumper;
 
 # resume fsck when host is responsive again
 {
-    is(kill("CONT", $ms1->pid), 1, "send SIGCONT to mogstored1");
+    is(kill("CONT", -$ms1->pid), 1, "send SIGCONT to mogstored1");
     wait_for_monitor($be);
 
     shutdown_worker($admin, "fsck");
@@ -415,7 +415,7 @@ use Data::Dumper;
 # stall fsck with a non-responsive host
 # resume fsck when host is responsive again
 {
-    is(kill("STOP", $ms1->pid), 1, "send SIGSTOP to mogstored1 to stall");
+    is(kill("STOP", -$ms1->pid), 1, "send SIGSTOP to mogstored1 to stall");
     wait_for_monitor($be);
 
     watcher_wait_for(qr/\[fsck\(\d+\)] Connectivity problem reaching device/, sub {
@@ -423,7 +423,7 @@ use Data::Dumper;
     });
     is($sto->file_queue_length(MogileFS::Config::FSCK_QUEUE), 1, "fsck queue still blocked");
 
-    is(kill("CONT", $ms1->pid), 1, "send SIGCONT to mogstored1 to resume");
+    is(kill("CONT", -$ms1->pid), 1, "send SIGCONT to mogstored1 to resume");
     wait_for_monitor($be);
 
     # force fsck to wakeup and do work again

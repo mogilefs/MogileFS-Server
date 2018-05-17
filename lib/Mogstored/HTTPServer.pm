@@ -17,6 +17,10 @@ sub start {
     die "start not implemented for $self";
 }
 
+sub stop {
+    my $self = shift;
+}
+
 sub pre_daemonize {
     my $self = shift;
 }

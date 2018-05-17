@@ -47,7 +47,7 @@ sub start {
     mkdir $tmpDir;
     mkdir $tmpDir.'/logs';
 
-    my $pidFile = $tmpDir . '/nginx.pid';
+    $self->{pid_file} = $tmpDir . '/nginx.pid';
 
     # fork if nginx supports non-daemon mode
     if($nondaemon) {
@@ -64,7 +64,7 @@ sub start {
     }
     # otherwise, try killing previous instance of nginx
     else {
-        my $nginxpid = _getpid($pidFile);
+        my $nginxpid = _getpid($self->{pid_file});
         # TODO: Support reloading of nginx instead?
         if ($nginxpid) {
             my $killed = kill 15,$nginxpid;
@@ -130,7 +130,7 @@ sub start {
     my $user = $> == 0 ? "user root root;" : "";
 
     print $fh qq{
-        pid $pidFile;
+        pid $self->{pid_file};
         worker_processes 15;
         error_log /dev/null crit;
         $user
@@ -194,8 +194,12 @@ sub _getpid {
     return $string;
 }
 
-sub DESTROY {
+sub stop {
     my $self = shift;
+    my $pid = _getpid($self->{pid_file});
+    if ($pid) {
+        kill 'QUIT', $pid;
+    }
     unlink $self->{temp_conf_file} if $self->{temp_conf_file};
 }
 

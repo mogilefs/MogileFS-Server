@@ -58,8 +58,11 @@ $include_line
     exec $exe, "-D", "-f", $filename;
 }
 
-sub DESTROY {
+sub stop {
     my $self = shift;
+    if ($self->{pid}) {
+        kill 'INT', $self->{pid};
+    }
     unlink $self->{temp_conf_file} if $self->{temp_conf_file};
 }
 

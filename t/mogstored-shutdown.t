@@ -36,7 +36,7 @@ unless (ok($ms, "started daemonized mogstored")) {
 # what's its pid?
 my $real_pid = exist_pid();
 
-warn "real_pid = $real_pid\n";
+note "real_pid = $real_pid\n";
 #scalar <STDIN>;
 
 my $sock = try(5, 0.5, sub { IO::Socket::INET->new(PeerAddr => "$TEST_IP:7501",

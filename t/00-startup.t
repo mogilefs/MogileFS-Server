@@ -184,7 +184,7 @@ ok(try_for(10, sub {
     my @urls = $mogc->get_paths("no_content");
     my $nloc = @urls;
     if ($nloc < 2) {
-        diag("no_content still only on $nloc devices");
+        note("no_content still only on $nloc devices");
         return 0;
     }
     return 1;
@@ -222,7 +222,7 @@ ok(try_for(10, sub {
     @urls = $mogc->get_paths("file1");
     my $nloc = @urls;
     if ($nloc < 2) {
-        diag("file1 still only on $nloc devices");
+        note("file1 still only on $nloc devices");
         return 0;
     }
     return 1;
@@ -265,7 +265,7 @@ for (1..10) {
         my @urls = $mogc->get_paths("file1copy");
         my $nloc = @urls;
         if ($nloc < 2) {
-            diag("no_content still only on $nloc devices");
+            note("no_content still only on $nloc devices");
             return 0;
         }
         return 1;
@@ -290,14 +290,14 @@ ok($be->do_request("delete", {
 
 # create a couple hundred files now
 my $n_files = 100;
-diag("Creating $n_files files...");
+note("Creating $n_files files...");
 for my $n (1..$n_files) {
     my $fh = $mogc->new_file("manyhundred_$n", "2copies")
         or die "Failed to create manyhundred_$n: " . $mogc->errstr;
     my $data = "File number $n.\n" x 512;
     print $fh $data;
     close($fh) or die "Failed to close manyhundred_$n";
-    diag("created $n/$n_files") if $n % 10 == 0;
+    note("created $n/$n_files") if $n % 10 == 0;
 }
 pass("Created a ton of files");
 
@@ -309,7 +309,7 @@ pass("Created a ton of files");
         $iters--;
         $to_repl_rows = $dbh->selectrow_array("SELECT COUNT(*) FROM file_to_replicate");
         last if ! $to_repl_rows;
-        diag("Files to replicate: $to_repl_rows");
+        note("Files to replicate: $to_repl_rows");
         sleep 1;
     }
     die "Failed to replicate all $n_files files" if $to_repl_rows;
@@ -340,7 +340,7 @@ ok(try_for(40, sub {
     while (my ($devid, $ct) = $sth->fetchrow_array) {
         $has{$devid} = $ct;
     }
-    diag("Replication update: " . join(", ", map { "dev$_: " . sprintf("%3d", ($has{$_}||0)) } (1..6)));
+    note("Replication update: " . join(", ", map { "dev$_: " . sprintf("%3d", ($has{$_}||0)) } (1..6)));
     return 0 if $has{3} || $has{4};
     return $has{1} && $has{1} && $has{5} && $has{6};
 }), "files replicated to hostC from hostB");
@@ -362,7 +362,7 @@ ok(try_for(25, sub {
     foreach my $hn (1, 3) {
         my @lfiles = `find $mogroot{$hn} -type f -name '*.fid'`;
         push @files, @lfiles;
-        diag("files on host $hn = " . scalar(@lfiles));
+        note("files on host $hn = " . scalar(@lfiles));
     }
     return @files == 0;
 }), "and they're gone from filesystem");
