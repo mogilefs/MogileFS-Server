@@ -47,7 +47,7 @@ foreach my $bdev (@bdevs) {
     my ($dev, $devid) = ($1, $2);
     unless (-d "$base") { mkdir $base or die "Failed to mkdir $base: $!"; }
     my $mnt = "$base/dev$devid";
-    unless (-d $mnt) { mkdir $mnt or die "Failed to mkdir $mnt: $!"; }
+    unless (-d $mnt) { mkdir $mnt,0000 or die "Failed to mkdir $mnt: $!"; }
     next if $mounted{$dev};
 
     if ($chmod_mountpoints and ((stat($mnt))[2] & 0777) != 0) {
