@@ -31,7 +31,7 @@ sub dsn_of_root {
 sub want_raise_errors { 1 }
 
 # given a root DBI connection, create the named database.  succeed
-# if it it's made, or already exists.  die otherwise.
+# if it is made, or already exists.  die otherwise.
 sub create_db_if_not_exists {
     my ($pkg, $rdbh, $dbname) = @_;
     if(not $rdbh->do("CREATE DATABASE $dbname TEMPLATE template0 ENCODING 'UTF-8'" )) {

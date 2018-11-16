@@ -111,7 +111,7 @@ sub new_from_mogdbsetup {
 }
 
 # given a root DBI connection, create the named database.  succeed
-# if it it's made, or already exists.  die otherwise.
+# if it is made, or already exists.  die otherwise.
 sub create_db_if_not_exists {
     my ($pkg, $rdbh, $dbname) = @_;
     $rdbh->do("CREATE DATABASE IF NOT EXISTS $dbname")
@@ -625,7 +625,7 @@ sub TABLE_class {
 # and a class for derived images (scaled down versions, thumbnails, greyscale, etc)
 # each domain can setup classes and assign the minimum redundancy level for
 # each class.  fotobilder will use a 2 or 3 minimum copy redundancy for original
-# photos and and a 1 minimum for derived images (which means the sole device
+# photos and a 1 minimum for derived images (which means the sole device
 # for a derived image can die, bringing devcount to 0 for that file, but
 # the application can recreate it from its original)
 sub TABLE_file {
