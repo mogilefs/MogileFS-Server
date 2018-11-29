@@ -141,7 +141,7 @@ sub mog_sysid_map {
             my $devname = $number_to_name{$original} or next;
 
             # Pull off the new device name with a regex
-            if (my ($newname) = $devname =~ m/^([hs]d\w+)\d+$/) {
+            if (my ($newname) = $devname =~ m/^([hs]d\w+?)\d+$/) {
                 # Skip if we can't map it back to a device number
                 my $newnum = $name_to_number{$newname} or next;
                 $map->{$mogdevid} = $newnum;

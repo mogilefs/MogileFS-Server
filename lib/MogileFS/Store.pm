@@ -1723,7 +1723,7 @@ sub grab_queue_chunk {
     my $tries = 3;
     my $work;
 
-    return 0 unless $self->lock_queue($queue);
+    return unless $self->lock_queue($queue);
 
     my $extwhere = shift || '';
     my $fields = 'fid, nexttry, failcount';
