@@ -1378,7 +1378,7 @@ sub cmd_edit_file {
         return $self->err_line("db");
     }
     unless (Mgd::get_store()->add_fidid_to_devid($newfid, $devid)) {
-        warn "Error removing fidid from devid";
+        warn "Error adding fidid from devid";
         return $self->err_line("db");
     }
 
