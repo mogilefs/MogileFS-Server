@@ -78,7 +78,7 @@ sub delete {
 # callback.
 #
 # workers running Danga::Socket->EventLoop must supply a callback
-# workers NOT running Danga::Socket->EventLoop msut not supply a callback
+# workers NOT running Danga::Socket->EventLoop must not supply a callback
 use constant FILE_MISSING => -1;
 sub size {
     my ($self, $cb) = @_;
